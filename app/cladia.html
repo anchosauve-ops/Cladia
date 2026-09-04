@@ -204,8 +204,8 @@ nav.tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1
    canonical() reproduces json.dumps(sort_keys=True, separators=(",",":"), ensure_ascii=False)
    for the value shapes an entry can hold; hash = sha256(prev + "\n" + canonical(body)). */
 var CladiaCore = (function(){
-  var KINDS = ["fact","preference","decision","mistake","prediction","resolution","retraction"];
-  var DEFAULT_HALF_LIFE = {fact:120.0, preference:null, decision:null, mistake:null, prediction:null, resolution:null, retraction:null};
+  var KINDS = ["fact","preference","decision","mistake","prediction","resolution","retraction","merge"];
+  var DEFAULT_HALF_LIFE = {fact:120.0, preference:null, decision:null, mistake:null, prediction:null, resolution:null, retraction:null, merge:null};
   var GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   var FLOAT_FIELDS = {confidence:1, half_life_days:1};
   var UNSET = {};
@@ -261,6 +261,7 @@ var CladiaCore = (function(){
     if (e.kind === "prediction") { if (!e.meta.due) throw new Error("A prediction needs a date it can be judged by."); parseTs(e.meta.due); }
     if (e.kind === "resolution") { if (!e.meta.prediction) throw new Error("a resolution needs meta.prediction"); if (e.meta.outcome !== true && e.meta.outcome !== false) throw new Error("a resolution needs meta.outcome"); }
     if (e.kind === "retraction" && !e.supersedes) throw new Error("a retraction must supersede an entry");
+    if (e.kind === "merge" && (!e.meta.fork || !Array.isArray(e.meta.rechained))) throw new Error("a merge needs meta.fork and meta.rechained");
   }
   function seal(e, prev){ e.prev = prev; return computeHash(e).then(function(h){ e.hash = h; return e; }); }
 
@@ -286,7 +287,7 @@ var CladiaCore = (function(){
   }
 
   function supersededIds(entries){ var s = {}; entries.forEach(function(e){ if (e.supersedes) s[e.supersedes] = 1; }); return s; }
-  function active(entries){ var dead = supersededIds(entries); return entries.filter(function(e){ return !dead[e.id] && e.kind !== "resolution" && e.kind !== "retraction"; }); }
+  function active(entries){ var dead = supersededIds(entries); return entries.filter(function(e){ return !dead[e.id] && e.kind !== "resolution" && e.kind !== "retraction" && e.kind !== "merge"; }); }
   function resolutions(entries){ var dead = supersededIds(entries), out = {}; entries.forEach(function(e){ if (e.kind === "resolution" && !dead[e.id]) out[e.meta.prediction] = e; }); return out; }
   function openPredictions(entries){ var res = resolutions(entries); return active(entries).filter(function(e){ return e.kind === "prediction" && !res[e.id]; }); }
   function lineage(entries, id){ var by = {}; entries.forEach(function(e){ by[e.id] = e; }); var e = by[id], out = []; while (e) { out.push(e); e = e.supersedes ? by[e.supersedes] : null; } return out.reverse(); }
@@ -413,7 +414,7 @@ if (typeof module !== "undefined") module.exports = CladiaCore;
     if (e.author === "human") marks.push('<span class="mark human">human</span>');
     if (opts.dead && opts.dead[e.id]) marks.push('<span class="mark superseded">' + (opts.retracted && opts.retracted[e.id] ? "retracted" : "superseded") + '</span>');
     if (e.kind === "prediction") { var r = res[e.id]; if (r) marks.push('<span class="mark resolved-' + r.meta.outcome + '">' + (r.meta.outcome ? "came true" : "did not") + '</span>'); else if (C.parseTs(e.meta.due) <= now) marks.push('<span class="mark overdue">overdue</span>'); }
-    var amt = e.kind === "prediction" ? "p " + pct(e.confidence) : (e.kind === "decision" || e.kind === "mistake" || e.kind === "preference" || e.kind === "retraction" || e.kind === "resolution") ? "" : pct(C.effectiveConfidence(e, now));
+    var amt = e.kind === "prediction" ? "p " + pct(e.confidence) : (e.kind === "decision" || e.kind === "mistake" || e.kind === "preference" || e.kind === "retraction" || e.kind === "resolution" || e.kind === "merge") ? "" : pct(C.effectiveConfidence(e, now));
     var sub = '<span class="kind">' + esc(e.kind) + '</span>' + marks.join("") +
       (e.kind === "prediction" ? '<span>by ' + esc(fmtDate(e.meta.due)) + '</span>' : "") +
       (e.tags || []).map(function(t){ return '<span class="tag">#' + esc(t) + '</span>'; }).join("") +
@@ -464,7 +465,7 @@ if (typeof module !== "undefined") module.exports = CladiaCore;
         if (desc.length) bits.push('<span>Superseded by: ' + desc.map(function(x){ return x.id + " (" + x.kind + ")"; }).join(", ") + '</span>');
         bits.push('<span class="id" style="overflow-wrap:anywhere">sha256 ' + esc(e.hash) + '</span>');
         var acts = [];
-        var alive = !dead[e.id] && e.kind !== "resolution" && e.kind !== "retraction";
+        var alive = !dead[e.id] && e.kind !== "resolution" && e.kind !== "retraction" && e.kind !== "merge";
         if (alive && e.kind === "prediction" && !res[e.id]) acts.push('<button class="btn small primary" data-act="resolve-true" data-id="' + e.id + '">Came true</button><button class="btn small" data-act="resolve-false" data-id="' + e.id + '">Did not</button>');
         if (alive && e.kind !== "prediction") acts.push('<button class="btn small" data-act="correct" data-id="' + e.id + '">Correct</button>');
         if (alive) acts.push('<button class="btn small danger" data-act="retract" data-id="' + e.id + '">Retract</button>');
