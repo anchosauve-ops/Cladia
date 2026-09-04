@@ -1,0 +1,575 @@
+<title>Cladia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#F3F5F2; --paper-2:#E9EDE9; --ink:#14201C; --ink-2:#3E4B46; --muted:#66746E;
+  --rule:#CBD5CE; --rule-strong:#A9B7AF; --accent:#1F6F5B; --accent-ink:#FFFFFF; --accent-soft:#DCEBE4;
+  --warn:#9A6414; --warn-soft:#F3E7CF; --crit:#A63D2F; --crit-soft:#F4DCD7; --human:#3B4E9E; --human-soft:#DDE3F5;
+  --focus:#1F6F5B;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111916; --paper-2:#182220; --ink:#E7ECE9; --ink-2:#BCC7C1; --muted:#8B9A93;
+    --rule:#2A3631; --rule-strong:#3D4B45; --accent:#63C2A3; --accent-ink:#0E1A15; --accent-soft:#1C3A31;
+    --warn:#E0A94A; --warn-soft:#3A2D12; --crit:#E57A6B; --crit-soft:#3E1E19; --human:#9DB0F0; --human-soft:#22305E;
+    --focus:#63C2A3; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111916; --paper-2:#182220; --ink:#E7ECE9; --ink-2:#BCC7C1; --muted:#8B9A93;
+  --rule:#2A3631; --rule-strong:#3D4B45; --accent:#63C2A3; --accent-ink:#0E1A15; --accent-soft:#1C3A31;
+  --warn:#E0A94A; --warn-soft:#3A2D12; --crit:#E57A6B; --crit-soft:#3E1E19; --human:#9DB0F0; --human-soft:#22305E;
+  --focus:#63C2A3; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 var(--sans);min-height:100vh;overflow-x:hidden;max-width:100vw;
+  padding-bottom:calc(72px + env(safe-area-inset-bottom));}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+.app{max-width:640px;margin:0 auto;padding:0 16px;min-width:0}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;padding:18px 0 10px;border-bottom:2px solid var(--ink)}
+.wordmark{font-family:var(--display);font-size:28px;font-weight:600;letter-spacing:-.01em;margin:0;line-height:1}
+.wordmark small{display:block;font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.status{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;min-width:0;max-width:100%}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;background:var(--paper-2);color:var(--ink-2);white-space:nowrap}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.chip.ok .dot{background:var(--accent)} .chip.bad{background:var(--crit-soft);color:var(--crit)} .chip.bad .dot{background:var(--crit)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.warn .dot{background:var(--warn)}
+
+main{padding-top:8px}
+.view{display:none}.view.active{display:block}
+h2{font-family:var(--display);font-weight:500;font-size:20px;margin:26px 0 6px;text-wrap:balance}
+h2:first-child{margin-top:14px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+p.lede{color:var(--ink-2);margin:0 0 10px;max-width:60ch}
+.empty{color:var(--muted);padding:18px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);text-align:center}
+
+/* ruled ledger rows */
+.rows{margin:0;padding:0;list-style:none;border-top:1px solid var(--rule-strong)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 0;border-bottom:1px solid var(--rule);align-items:start}
+.row .text{margin:0;min-width:0;overflow-wrap:anywhere}
+.row .amt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink-2);text-align:right;padding-top:3px;min-width:44px}
+.row .sub{grid-column:1 / -1;min-width:0;overflow-wrap:anywhere;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12px;color:var(--muted)}
+.row .sub .id{font-family:var(--mono);font-size:11px}
+.row .why{grid-column:1 / -1;min-width:0;overflow-wrap:anywhere;margin:0;color:var(--ink-2);font-size:14px;padding-left:12px;border-left:2px solid var(--rule-strong)}
+.tag{color:var(--accent);font-weight:500}
+.kind{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.mark{display:inline-block;font-size:11px;font-weight:600;padding:1px 6px;border-radius:3px}
+.mark.human{background:var(--human-soft);color:var(--human)}
+.mark.overdue{background:var(--warn-soft);color:var(--warn)}
+.mark.superseded{background:var(--paper-2);color:var(--muted)}
+.mark.resolved-true{background:var(--accent-soft);color:var(--accent)}
+.mark.resolved-false{background:var(--crit-soft);color:var(--crit)}
+.row.clickable{cursor:pointer}
+.row .actions{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px;padding-top:6px}
+
+/* controls */
+.btn{appearance:none;border:1px solid var(--rule-strong);background:var(--paper);color:var(--ink);border-radius:8px;padding:9px 14px;font-weight:500;cursor:pointer;min-height:40px}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.small{padding:5px 10px;min-height:32px;font-size:13px}
+.btn.danger{color:var(--crit);border-color:var(--crit)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.field{display:flex;flex-direction:column;gap:6px;margin:14px 0}
+.field label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.field .hint{font-size:12px;color:var(--muted)}
+input[type=text],input[type=date],input[type=search],textarea,select{width:100%;background:var(--paper);border:1px solid var(--rule-strong);border-radius:8px;padding:10px 12px;min-height:44px}
+textarea{min-height:88px;resize:vertical}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:flex;gap:0;border:1px solid var(--rule-strong);border-radius:8px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;padding:9px 4px;font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.inline{display:flex;gap:10px;align-items:center}
+.inline > *{flex:1}
+.conf-read{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:22px;min-width:64px;text-align:right;flex:0 0 auto}
+.notice{padding:10px 12px;border-radius:8px;font-size:14px;margin:12px 0}
+.notice.ok{background:var(--accent-soft);color:var(--accent)}
+.notice.bad{background:var(--crit-soft);color:var(--crit)}
+.notice.warn{background:var(--warn-soft);color:var(--warn)}
+
+/* calibration table */
+table.cal{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.cal th{text-align:left;font-weight:600;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:6px 0;border-bottom:1px solid var(--rule-strong)}
+table.cal td{padding:6px 0;border-bottom:1px solid var(--rule);font-family:var(--mono)}
+table.cal td:not(:first-child),table.cal th:not(:first-child){text-align:right}
+.verdict{font-family:var(--display);font-size:18px;line-height:1.35;margin:8px 0 10px;text-wrap:balance}
+
+details.tools{margin:22px 0;border-top:1px solid var(--rule-strong)}
+details.tools summary{cursor:pointer;padding:12px 0;font-weight:600;color:var(--ink-2)}
+.tools .body{display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--rule-strong);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs ul{list-style:none;margin:0 auto;padding:0;max-width:640px;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs button{width:100%;border:0;background:transparent;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;min-height:56px}
+nav.tabs button[aria-selected="true"]{color:var(--accent)}
+nav.tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+</style>
+
+<div class="app">
+  <header class="top">
+    <h1 class="wordmark">Cladia<small>a lineage of memory</small></h1>
+    <div class="status">
+      <span class="chip" id="chip-chain"><span class="dot"></span><span>Loading</span></span>
+      <span class="chip" id="chip-sync"><span class="dot"></span><span>…</span></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="view active" id="view-brief" aria-labelledby="tab-brief">
+      <div class="field" style="margin-top:14px">
+        <input type="search" id="brief-topic" placeholder="Focus the briefing on a topic (optional)" aria-label="Briefing topic">
+      </div>
+      <div id="brief"></div>
+    </section>
+
+    <section class="view" id="view-add" aria-labelledby="tab-add">
+      <h2 id="add-title">Record something</h2>
+      <p class="lede" id="add-lede">Nothing is ever edited or deleted. This is appended to the chain.</p>
+      <div class="seg" id="kind-seg" role="group" aria-label="Kind">
+        <button type="button" data-kind="fact" aria-pressed="true">Fact</button>
+        <button type="button" data-kind="preference" aria-pressed="false">Preference</button>
+        <button type="button" data-kind="decision" aria-pressed="false">Decision</button>
+        <button type="button" data-kind="mistake" aria-pressed="false">Mistake</button>
+        <button type="button" data-kind="prediction" aria-pressed="false">Prediction</button>
+      </div>
+      <form id="add-form" autocomplete="off">
+        <div class="field"><label for="f-text" id="f-text-label">What is true?</label><textarea id="f-text" required></textarea></div>
+        <div class="field" id="f-why-wrap" hidden><label for="f-why">Why</label><input type="text" id="f-why" placeholder="The reasons, in one line"></div>
+        <div class="field" id="f-alts-wrap" hidden><label for="f-alts">Alternatives considered</label><input type="text" id="f-alts" placeholder="Separate with semicolons"></div>
+        <div class="field" id="f-lesson-wrap" hidden><label for="f-lesson">Lesson</label><input type="text" id="f-lesson" placeholder="What to do differently"></div>
+        <div class="field" id="f-due-wrap" hidden><label for="f-due">Can be judged by</label><input type="date" id="f-due"></div>
+        <div class="field" id="f-conf-wrap"><label for="f-conf" id="f-conf-label">Confidence</label>
+          <div class="inline"><input type="range" id="f-conf" min="0" max="100" step="5" value="80"><span class="conf-read" id="f-conf-read">80%</span></div>
+          <span class="hint" id="f-conf-hint">Facts halve in weight every 120 days unless re-recorded.</span></div>
+        <div class="field"><label for="f-tags">Tags</label><input type="text" id="f-tags" placeholder="comma, separated"></div>
+        <div class="field"><label for="f-evidence">Evidence</label><input type="text" id="f-evidence" placeholder="Paths, links, commits — comma separated"></div>
+        <div class="field" id="f-author-wrap"><label>Recorded by</label>
+          <div class="seg" role="group" aria-label="Author"><button type="button" data-author="human" aria-pressed="true">Me (human)</button><button type="button" data-author="agent" aria-pressed="false">An agent</button></div></div>
+        <input type="hidden" id="f-supersedes">
+        <div id="add-notice"></div>
+        <div class="inline" style="margin-top:8px"><button class="btn primary" type="submit" id="add-submit">Append to ledger</button><button class="btn" type="button" id="add-cancel" hidden>Cancel correction</button></div>
+      </form>
+    </section>
+
+    <section class="view" id="view-recall" aria-labelledby="tab-recall">
+      <div class="field" style="margin-top:14px"><input type="search" id="q" placeholder="Ask the ledger anything" aria-label="Search"></div>
+      <div class="seg" id="kind-filter" role="group" aria-label="Filter by kind">
+        <button type="button" data-kind="" aria-pressed="true">All</button>
+        <button type="button" data-kind="fact" aria-pressed="false">Facts</button>
+        <button type="button" data-kind="preference" aria-pressed="false">Prefs</button>
+        <button type="button" data-kind="decision" aria-pressed="false">Decisions</button>
+        <button type="button" data-kind="mistake" aria-pressed="false">Mistakes</button>
+      </div>
+      <div id="recall-results" style="margin-top:14px"></div>
+    </section>
+
+    <section class="view" id="view-ledger" aria-labelledby="tab-ledger">
+      <h2>Every entry, in order</h2>
+      <p class="lede">Superseded and retracted entries stay here. Tap a row for its lineage and actions.</p>
+      <div id="ledger-list"></div>
+      <details class="tools"><summary>Verify, export, import</summary>
+        <div class="body">
+          <div id="verify-out"></div>
+          <div class="inline"><button class="btn" type="button" id="btn-verify">Verify chain</button><button class="btn" type="button" id="btn-export">Export</button></div>
+          <span class="hint">Export produces JSONL that the Cladia command line reads directly, hashes identical.</span>
+          <textarea id="import-text" placeholder="Paste JSONL from another ledger to import into an empty ledger"></textarea>
+          <button class="btn" type="button" id="btn-import">Import</button>
+          <div id="import-out"></div>
+        </div>
+      </details>
+    </section>
+  </main>
+</div>
+
+<nav class="tabs" aria-label="Sections"><ul>
+  <li><button type="button" role="tab" id="tab-brief" data-view="brief" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Brief</button></li>
+  <li><button type="button" role="tab" id="tab-add" data-view="add" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Record</button></li>
+  <li><button type="button" role="tab" id="tab-recall" data-view="recall" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>Recall</button></li>
+  <li><button type="button" role="tab" id="tab-ledger" data-view="ledger" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 3v18" /></svg>Ledger</button></li>
+</ul></nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script id="cladia-core">
+/* Cladia core: byte-for-byte compatible with the Python ledger (cladia/model.py).
+   canonical() reproduces json.dumps(sort_keys=True, separators=(",",":"), ensure_ascii=False)
+   for the value shapes an entry can hold; hash = sha256(prev + "\n" + canonical(body)). */
+var CladiaCore = (function(){
+  var KINDS = ["fact","preference","decision","mistake","prediction","resolution","retraction"];
+  var DEFAULT_HALF_LIFE = {fact:120.0, preference:null, decision:null, mistake:null, prediction:null, resolution:null, retraction:null};
+  var GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  var FLOAT_FIELDS = {confidence:1, half_life_days:1};
+  var UNSET = {};
+
+  function nowIso(){ return new Date().toISOString().slice(0,19) + "+00:00"; }
+  function parseTs(s){ var d = new Date(s); if (isNaN(d)) throw new Error("bad timestamp " + s); return d; }
+  function pyFloat(n){
+    if (!isFinite(n)) throw new Error("non-finite number");
+    if (Number.isInteger(n) && Math.abs(n) < 1e16) return n + ".0";
+    return String(n);
+  }
+  function canonical(v, key){
+    if (v === null || v === undefined) return "null";
+    if (typeof v === "boolean") return v ? "true" : "false";
+    if (typeof v === "number") return (key && FLOAT_FIELDS[key]) ? pyFloat(v) : String(v);
+    if (typeof v === "string") return JSON.stringify(v);
+    if (Array.isArray(v)) return "[" + v.map(function(x){ return canonical(x, null); }).join(",") + "]";
+    var keys = Object.keys(v).sort();
+    return "{" + keys.map(function(k){ return JSON.stringify(k) + ":" + canonical(v[k], k); }).join(",") + "}";
+  }
+  function sha256(str){
+    var bytes = new TextEncoder().encode(str);
+    return crypto.subtle.digest("SHA-256", bytes).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){ return b.toString(16).padStart(2, "0"); }).join("");
+    });
+  }
+  function body(e){ var b = {}; for (var k in e) if (k !== "hash" && k !== "seq") b[k] = e[k]; return b; }
+  function computeHash(e){ return sha256(e.prev + "\n" + canonical(body(e))); }
+  function toLineSorted(e){ var full = body(e); full.hash = e.hash; return canonical(full); }
+  function normTags(tags){
+    var seen = {}, out = [];
+    (tags || []).forEach(function(t){ t = String(t).trim().toLowerCase(); if (t && !seen[t]) { seen[t] = 1; out.push(t); } });
+    return out.sort();
+  }
+  function newId(){ var b = new Uint8Array(6); crypto.getRandomValues(b); return Array.prototype.map.call(b, function(x){ return x.toString(16).padStart(2, "0"); }).join(""); }
+
+  function make(o){
+    var hl = (o.half_life_days === undefined || o.half_life_days === UNSET) ? DEFAULT_HALF_LIFE[o.kind] : o.half_life_days;
+    return {
+      kind: o.kind, text: String(o.text || "").trim(), id: o.id || newId(), ts: o.ts || nowIso(),
+      tags: normTags(o.tags), confidence: Number(o.confidence === undefined ? 0.8 : o.confidence),
+      half_life_days: hl === null || hl === undefined ? null : Number(hl),
+      evidence: (o.evidence || []).filter(Boolean), session: o.session || null, author: o.author || "agent",
+      supersedes: o.supersedes || null, meta: o.meta || {}, prev: "", hash: ""
+    };
+  }
+  function validate(e){
+    if (KINDS.indexOf(e.kind) < 0) throw new Error("unknown kind " + e.kind);
+    if (!e.text || !e.text.trim()) throw new Error("Write something first.");
+    if (!(e.confidence >= 0 && e.confidence <= 1)) throw new Error("confidence must be between 0 and 1");
+    if (e.half_life_days !== null && !(e.half_life_days > 0)) throw new Error("half_life_days must be positive");
+    if (e.author !== "agent" && e.author !== "human") throw new Error("author must be agent or human");
+    if (e.kind === "prediction") { if (!e.meta.due) throw new Error("A prediction needs a date it can be judged by."); parseTs(e.meta.due); }
+    if (e.kind === "resolution") { if (!e.meta.prediction) throw new Error("a resolution needs meta.prediction"); if (e.meta.outcome !== true && e.meta.outcome !== false) throw new Error("a resolution needs meta.outcome"); }
+    if (e.kind === "retraction" && !e.supersedes) throw new Error("a retraction must supersede an entry");
+  }
+  function seal(e, prev){ e.prev = prev; return computeHash(e).then(function(h){ e.hash = h; return e; }); }
+
+  function ageDays(e, at){ at = at || new Date(); return Math.max(0, (at - parseTs(e.ts)) / 86400000); }
+  function effectiveConfidence(e, at){ var c = Number(e.confidence); if (e.half_life_days) c *= Math.pow(0.5, ageDays(e, at) / Number(e.half_life_days)); return c; }
+
+  function verify(entries){
+    var prev = GENESIS, problems = [], seen = {};
+    var chain = Promise.resolve();
+    entries.forEach(function(e, i){
+      chain = chain.then(function(){
+        var n = i + 1;
+        if (e.prev !== prev) problems.push("#" + n + " " + e.id + ": prev hash mismatch (chain broken before this entry)");
+        return computeHash(e).then(function(h){
+          if (h !== e.hash) problems.push("#" + n + " " + e.id + ": content hash mismatch (entry altered)");
+          if (seen[e.id]) problems.push("#" + n + " " + e.id + ": duplicate id"); seen[e.id] = 1;
+          try { validate(e); } catch (err) { problems.push("#" + n + " " + e.id + ": invalid: " + err.message); }
+          prev = e.hash;
+        });
+      });
+    });
+    return chain.then(function(){ return {ok: problems.length === 0, problems: problems}; });
+  }
+
+  function supersededIds(entries){ var s = {}; entries.forEach(function(e){ if (e.supersedes) s[e.supersedes] = 1; }); return s; }
+  function active(entries){ var dead = supersededIds(entries); return entries.filter(function(e){ return !dead[e.id] && e.kind !== "resolution" && e.kind !== "retraction"; }); }
+  function resolutions(entries){ var dead = supersededIds(entries), out = {}; entries.forEach(function(e){ if (e.kind === "resolution" && !dead[e.id]) out[e.meta.prediction] = e; }); return out; }
+  function openPredictions(entries){ var res = resolutions(entries); return active(entries).filter(function(e){ return e.kind === "prediction" && !res[e.id]; }); }
+  function lineage(entries, id){ var by = {}; entries.forEach(function(e){ by[e.id] = e; }); var e = by[id], out = []; while (e) { out.push(e); e = e.supersedes ? by[e.supersedes] : null; } return out.reverse(); }
+  function descendants(entries, id){ return entries.filter(function(e){ return e.supersedes === id; }); }
+
+  var STOP = {}; "a an the of to in on for and or is are was were be been it its this that with as at by from we i you they he she not no do does did have has had".split(" ").forEach(function(w){ STOP[w] = 1; });
+  function tokenize(text){ var out = [], re = /[a-z0-9][a-z0-9_\-./]*/gi, m; while ((m = re.exec(text || ""))) { var t = m[0].toLowerCase().replace(/[._\-\/]+$/, ""); if (t.length > 1 && !STOP[t]) out.push(t); } return out; }
+  function matchScore(e, q){
+    if (!q.length) return 1;
+    var tt = {}; tokenize(e.text).forEach(function(t){ tt[t] = 1; });
+    ["lesson", "why"].forEach(function(k){ if (e.meta && e.meta[k]) tokenize(String(e.meta[k])).forEach(function(t){ tt[t] = 1; }); });
+    var tags = {}; (e.tags || []).forEach(function(t){ tags[t] = 1; });
+    var all = Object.keys(tt).concat(Object.keys(tags));
+    var hits = 0;
+    q.forEach(function(w){
+      if (tags[w]) hits += 2; else if (tt[w]) hits += 1;
+      else if (w.length >= 4 && all.some(function(t){ return t.length >= 4 && (t.indexOf(w) === 0 || w.indexOf(t) === 0); })) hits += 0.5;
+    });
+    return Math.min(1, hits / q.length);
+  }
+  function recall(entries, query, opts){
+    opts = opts || {}; var now = opts.now || new Date(); var q = tokenize(query || "");
+    var kinds = opts.kinds || [], tags = opts.tags || [], out = [];
+    active(entries).forEach(function(e){
+      if (kinds.length && kinds.indexOf(e.kind) < 0) return;
+      if (tags.length && !tags.every(function(t){ return e.tags.indexOf(t) >= 0; })) return;
+      var conf = effectiveConfidence(e, now); if (conf < (opts.minConfidence || 0.05)) return;
+      var m = matchScore(e, q); if (m <= 0) return;
+      out.push({score: m * (0.3 + 0.7 * conf) + 0.15 / (1 + ageDays(e, now) / 30), entry: e});
+    });
+    out.sort(function(a, b){ return b.score - a.score || (a.entry.ts < b.entry.ts ? -1 : 1); });
+    return out.slice(0, opts.limit || 10);
+  }
+
+  var BUCKETS = [[0, .2], [.2, .4], [.4, .6], [.6, .8], [.8, 1.01]];
+  function calibration(entries, now){
+    now = now || new Date(); var res = resolutions(entries), dead = supersededIds(entries);
+    var preds = entries.filter(function(e){ return e.kind === "prediction" && !dead[e.id]; });
+    var pairs = []; preds.forEach(function(p){ var r = res[p.id]; if (r) pairs.push([Number(p.confidence), r.meta.outcome ? 1 : 0]); });
+    var n = pairs.length, sum = function(f){ return pairs.reduce(function(a, x){ return a + f(x); }, 0); };
+    var brier = n ? sum(function(x){ return Math.pow(x[0] - x[1], 2); }) / n : null;
+    var base = n ? sum(function(x){ return x[1]; }) / n : null;
+    var skill = null; if (n && base > 0 && base < 1) { var ref = sum(function(x){ return Math.pow(base - x[1], 2); }) / n; skill = ref ? 1 - brier / ref : null; }
+    var meanP = n ? sum(function(x){ return x[0]; }) / n : null;
+    var buckets = BUCKETS.map(function(b){ var inb = pairs.filter(function(x){ return x[0] >= b[0] && x[0] < b[1]; }); return {range: [b[0], Math.min(b[1], 1)], n: inb.length,
+      mean: inb.length ? inb.reduce(function(a, x){ return a + x[0]; }, 0) / inb.length : null, observed: inb.length ? inb.reduce(function(a, x){ return a + x[1]; }, 0) / inb.length : null}; });
+    var open = preds.filter(function(p){ return !res[p.id]; }), overdue = open.filter(function(p){ return parseTs(p.meta.due) <= now; });
+    return {resolved: n, open: open.length, overdue: overdue.length, brier: brier, skill: skill, base_rate: base, mean_confidence: meanP, overconfidence: n ? meanP - base : null, buckets: buckets};
+  }
+  function verdict(s){
+    var n = s.resolved; if (!n) return "No resolved predictions yet, so calibration is unknown. Make predictions and resolve them.";
+    var oc = s.overconfidence || 0, size = n < 10 ? "only " + n + " resolved prediction" + (n !== 1 ? "s" : "") + ", so treat this as weak evidence" : n + " resolved predictions";
+    var tilt = Math.abs(oc) < .05 ? "well calibrated" : oc > 0 ? "overconfident by about " + Math.round(oc * 100) + "%" : "underconfident by about " + Math.round(-oc * 100) + "%";
+    return "Across " + size + ": " + tilt + " (Brier " + s.brier.toFixed(3) + "; 0 is perfect, 0.25 is coin-flip).";
+  }
+
+  return {KINDS: KINDS, DEFAULT_HALF_LIFE: DEFAULT_HALF_LIFE, GENESIS: GENESIS, UNSET: UNSET, nowIso: nowIso, parseTs: parseTs, canonical: canonical, sha256: sha256,
+    body: body, computeHash: computeHash, toLine: toLineSorted, normTags: normTags, newId: newId, make: make, validate: validate, seal: seal,
+    ageDays: ageDays, effectiveConfidence: effectiveConfidence, verify: verify, supersededIds: supersededIds, active: active, resolutions: resolutions,
+    openPredictions: openPredictions, lineage: lineage, descendants: descendants, tokenize: tokenize, recall: recall, calibration: calibration, verdict: verdict};
+})();
+if (typeof module !== "undefined") module.exports = CladiaCore;
+</script>
+
+<script>
+(function(){
+  var C = CladiaCore;
+  var $ = function(s){ return document.querySelector(s); };
+  var esc = function(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+  var state = {entries: [], mode: "local", db: null, downloads: null, chain: null, kind: "fact", author: "human", filterKind: "", supersedes: null, expanded: {}};
+
+  // ---------- storage ----------
+  var LS_KEY = "cladia.ledger.v1";
+  function loadLocal(){ try { var raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : []; } catch (e) { return []; } }
+  function saveLocal(entries){ try { localStorage.setItem(LS_KEY, JSON.stringify(entries)); } catch (e) {} }
+  function sortBySeq(docs){ return docs.slice().sort(function(a, b){ return (a.seq || 0) - (b.seq || 0); }); }
+
+  function setSync(mode, label, cls){ state.mode = mode; var chip = $("#chip-sync"); chip.className = "chip " + (cls || ""); chip.lastElementChild.textContent = label; }
+
+  function connect(){
+    state.entries = loadLocal(); renderAll();
+    if (!window.claude || !window.claude.use) { setSync("local", "On this device only", "warn"); refreshChain(); return; }
+    setSync("local", "Connecting…");
+    window.claude.use("downloads").then(function(d){ state.downloads = d; });
+    window.claude.use("db").then(function(db){
+      if (!db) { setSync("local", "On this device only", "warn"); refreshChain(); return; }
+      state.db = db;
+      db.collection("entries").orderBy("seq").limit(1000).onSnapshot(function(snap){
+        var docs = snap.docs.map(function(d){ return d.data(); });
+        state.entries = sortBySeq(docs).map(function(d){ var e = {}; for (var k in d) e[k] = d[k]; return e; });
+        setSync("db", snap.metadata.hasPendingWrites ? "Saving…" : "Synced", "ok");
+        saveLocal(state.entries); renderAll(); refreshChain();
+      }, function(err){ setSync("local", "Sync lost (" + err.code + ")", "bad"); });
+    });
+  }
+
+  function append(entry){
+    var last = state.entries[state.entries.length - 1];
+    var prev = last ? last.hash : C.GENESIS;
+    C.validate(entry);
+    return C.seal(entry, prev).then(function(e){
+      if (state.db) {
+        var doc = {}; for (var k in e) doc[k] = e[k]; doc.seq = (last && last.seq != null ? last.seq : state.entries.length - 1) + 1;
+        return state.db.collection("entries").doc(e.id).set(doc).then(function(){ return e; });
+      }
+      var doc2 = {}; for (var k2 in e) doc2[k2] = e[k2]; doc2.seq = state.entries.length;
+      state.entries = state.entries.concat([doc2]); saveLocal(state.entries); renderAll(); refreshChain();
+      return e;
+    });
+  }
+
+  function refreshChain(){
+    var chip = $("#chip-chain");
+    if (!state.entries.length) { chip.className = "chip"; chip.lastElementChild.textContent = "Empty ledger"; return; }
+    C.verify(state.entries).then(function(r){ state.chain = r; chip.className = "chip " + (r.ok ? "ok" : "bad"); chip.lastElementChild.textContent = (r.ok ? "Chain intact · " : "Chain broken · ") + state.entries.length + " entries"; });
+  }
+
+  // ---------- rendering ----------
+  function pct(x){ return Math.round(x * 100) + "%"; }
+  function fmtDate(s){ try { return C.parseTs(s).toISOString().slice(0, 10); } catch (e) { return s; } }
+  function row(e, opts){
+    opts = opts || {}; var now = new Date(); var res = opts.res || {};
+    var marks = [];
+    if (e.author === "human") marks.push('<span class="mark human">human</span>');
+    if (opts.dead && opts.dead[e.id]) marks.push('<span class="mark superseded">' + (opts.retracted && opts.retracted[e.id] ? "retracted" : "superseded") + '</span>');
+    if (e.kind === "prediction") { var r = res[e.id]; if (r) marks.push('<span class="mark resolved-' + r.meta.outcome + '">' + (r.meta.outcome ? "came true" : "did not") + '</span>'); else if (C.parseTs(e.meta.due) <= now) marks.push('<span class="mark overdue">overdue</span>'); }
+    var amt = e.kind === "prediction" ? "p " + pct(e.confidence) : (e.kind === "decision" || e.kind === "mistake" || e.kind === "preference" || e.kind === "retraction" || e.kind === "resolution") ? "" : pct(C.effectiveConfidence(e, now));
+    var sub = '<span class="kind">' + esc(e.kind) + '</span>' + marks.join("") +
+      (e.kind === "prediction" ? '<span>by ' + esc(fmtDate(e.meta.due)) + '</span>' : "") +
+      (e.tags || []).map(function(t){ return '<span class="tag">#' + esc(t) + '</span>'; }).join("") +
+      (opts.showDate ? '<span>' + esc(fmtDate(e.ts)) + '</span>' : "") + '<span class="id">' + esc(e.id) + '</span>';
+    var why = e.meta && e.meta.lesson ? '<p class="why">Lesson: ' + esc(e.meta.lesson) + '</p>' : e.meta && e.meta.why ? '<p class="why">Why: ' + esc(e.meta.why) + '</p>' : "";
+    return '<li class="row' + (opts.clickable ? " clickable" : "") + '" data-id="' + esc(e.id) + '"><p class="text">' + esc(e.text) + '</p><span class="amt">' + amt + '</span><div class="sub">' + sub + '</div>' + why + (opts.extra || "") + '</li>';
+  }
+  function list(items, opts){ return items.length ? '<ul class="rows">' + items.map(function(e){ return row(e, opts); }).join("") + '</ul>' : ""; }
+
+  function renderBrief(){
+    var topic = $("#brief-topic").value.trim(); var E = state.entries; var out = [];
+    if (!E.length) { $("#brief").innerHTML = '<div class="empty">The ledger is empty. Record the first thing you know.</div>'; return; }
+    function pick(kind, n){ var hits = C.recall(E, topic, {kinds: [kind], limit: n}); if (!hits.length && topic && (kind === "preference" || kind === "mistake")) hits = C.recall(E, "", {kinds: [kind], limit: n}); return hits.map(function(h){ return h.entry; }); }
+    var prefs = pick("preference", 12), mistakes = pick("mistake", 8), facts = pick("fact", 12), decisions = pick("decision", 8);
+    var open = C.openPredictions(E).sort(function(a, b){ return a.meta.due < b.meta.due ? -1 : 1; }).slice(0, 8);
+    if (prefs.length) out.push('<h2>How the humans here want things done</h2>' + list(prefs));
+    if (mistakes.length) out.push('<h2>Mistakes already made</h2><p class="lede">Do not repeat these.</p>' + list(mistakes));
+    if (facts.length) out.push('<h2>What is believed to be true</h2>' + list(facts));
+    if (decisions.length) out.push('<h2>Decisions already taken</h2>' + list(decisions));
+    if (open.length) out.push('<h2>Open predictions</h2><p class="lede">Resolve them from the Ledger tab when the outcome is known.</p>' + list(open));
+    var s = C.calibration(E);
+    var tbl = s.resolved ? '<table class="cal"><thead><tr><th>Said</th><th>n</th><th>Mean said</th><th>Observed</th></tr></thead><tbody>' + s.buckets.map(function(b){ return '<tr><td>' + b.range[0].toFixed(1) + '–' + b.range[1].toFixed(1) + '</td><td>' + b.n + '</td><td>' + (b.mean == null ? "–" : pct(b.mean)) + '</td><td>' + (b.observed == null ? "–" : pct(b.observed)) + '</td></tr>'; }).join("") + '</tbody></table>' : "";
+    out.push('<h2>Calibration</h2><p class="verdict">' + esc(C.verdict(s)) + '</p>' + tbl + '<p class="lede" style="margin-top:8px">' + s.open + ' open · ' + s.overdue + ' overdue · ' + s.resolved + ' resolved</p>');
+    if (!prefs.length && !mistakes.length && !facts.length && !decisions.length && topic) out.unshift('<div class="notice warn">Nothing matches “' + esc(topic) + '”. Showing what applies regardless.</div>');
+    $("#brief").innerHTML = out.join("");
+  }
+
+  function renderRecall(){
+    var q = $("#q").value; var hits = C.recall(state.entries, q, {kinds: state.filterKind ? [state.filterKind] : [], limit: 20});
+    $("#recall-results").innerHTML = hits.length ? '<ul class="rows">' + hits.map(function(h){ return row(h.entry, {showDate: true}); }).join("") + '</ul>' : '<div class="empty">' + (state.entries.length ? "Nothing recalled." : "The ledger is empty.") + '</div>';
+  }
+
+  function renderLedger(){
+    var E = state.entries; if (!E.length) { $("#ledger-list").innerHTML = '<div class="empty">The ledger is empty.</div>'; return; }
+    var dead = C.supersededIds(E), res = C.resolutions(E), retracted = {};
+    E.forEach(function(e){ if (e.kind === "retraction" && e.supersedes) retracted[e.supersedes] = 1; });
+    var html = E.slice().reverse().map(function(e){
+      var extra = "";
+      if (state.expanded[e.id]) {
+        var lin = C.lineage(E, e.id), desc = C.descendants(E, e.id), bits = [];
+        bits.push('<span>' + esc(e.ts.replace("T", " ").replace("+00:00", " UTC")) + '</span>');
+        if (e.evidence && e.evidence.length) bits.push('<span>Evidence: ' + e.evidence.map(esc).join(", ") + '</span>');
+        if (e.meta && e.meta.alternatives) bits.push('<span>Alternatives: ' + esc(Array.isArray(e.meta.alternatives) ? e.meta.alternatives.join("; ") : e.meta.alternatives) + '</span>');
+        if (e.meta && e.meta.note) bits.push('<span>Note: ' + esc(e.meta.note) + '</span>');
+        if (e.meta && e.meta.reason) bits.push('<span>Reason: ' + esc(e.meta.reason) + '</span>');
+        if (e.session) bits.push('<span>Session: ' + esc(e.session) + '</span>');
+        if (lin.length > 1) bits.push('<span>Lineage: ' + lin.map(function(x){ return x.id; }).join(" → ") + '</span>');
+        if (desc.length) bits.push('<span>Superseded by: ' + desc.map(function(x){ return x.id + " (" + x.kind + ")"; }).join(", ") + '</span>');
+        bits.push('<span class="id" style="overflow-wrap:anywhere">sha256 ' + esc(e.hash) + '</span>');
+        var acts = [];
+        var alive = !dead[e.id] && e.kind !== "resolution" && e.kind !== "retraction";
+        if (alive && e.kind === "prediction" && !res[e.id]) acts.push('<button class="btn small primary" data-act="resolve-true" data-id="' + e.id + '">Came true</button><button class="btn small" data-act="resolve-false" data-id="' + e.id + '">Did not</button>');
+        if (alive && e.kind !== "prediction") acts.push('<button class="btn small" data-act="correct" data-id="' + e.id + '">Correct</button>');
+        if (alive) acts.push('<button class="btn small danger" data-act="retract" data-id="' + e.id + '">Retract</button>');
+        extra = '<div class="sub" style="flex-direction:column;align-items:flex-start;gap:4px">' + bits.join("") + '</div>' + (acts.length ? '<div class="actions">' + acts.join("") + '</div>' : "");
+      }
+      return row(e, {dead: dead, res: res, retracted: retracted, showDate: true, clickable: true, extra: extra});
+    }).join("");
+    $("#ledger-list").innerHTML = '<ul class="rows">' + html + '</ul>';
+  }
+  function renderAll(){ renderBrief(); renderRecall(); renderLedger(); }
+
+  // ---------- add form ----------
+  var COPY = {
+    fact: ["What is true?", "Facts halve in weight every 120 days unless re-recorded.", "Confidence"],
+    preference: ["How should things be done?", "Preferences never decay.", "Confidence"],
+    decision: ["What was decided?", "Decisions never decay. Say why, so nobody relitigates it.", "Confidence"],
+    mistake: ["What went wrong?", "Mistakes are shown to every future session.", ""],
+    prediction: ["What will happen?", "A falsifiable claim. Resolve it later to build calibration.", "Probability"]
+  };
+  function setKind(k){
+    state.kind = k;
+    document.querySelectorAll("#kind-seg button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.kind === k)); });
+    $("#f-text-label").textContent = COPY[k][0]; $("#f-conf-hint").textContent = COPY[k][1]; $("#f-conf-label").textContent = COPY[k][2] || "Confidence";
+    $("#f-why-wrap").hidden = k !== "decision"; $("#f-alts-wrap").hidden = k !== "decision"; $("#f-lesson-wrap").hidden = k !== "mistake";
+    $("#f-due-wrap").hidden = k !== "prediction"; $("#f-conf-wrap").hidden = k === "mistake";
+    $("#f-lesson").required = k === "mistake"; $("#f-due").required = k === "prediction";
+    if (k === "prediction" && !$("#f-due").value) { var d = new Date(Date.now() + 30 * 86400000); $("#f-due").value = d.toISOString().slice(0, 10); }
+  }
+  $("#kind-seg").addEventListener("click", function(ev){ var b = ev.target.closest("button"); if (b) setKind(b.dataset.kind); });
+  document.querySelector("#f-author-wrap .seg").addEventListener("click", function(ev){ var b = ev.target.closest("button"); if (!b) return; state.author = b.dataset.author; document.querySelectorAll("#f-author-wrap .seg button").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); }); });
+  $("#f-conf").addEventListener("input", function(){ $("#f-conf-read").textContent = this.value + "%"; });
+  function splitList(s, sep){ return String(s || "").split(sep).map(function(x){ return x.trim(); }).filter(Boolean); }
+  function notice(sel, cls, msg){ $(sel).innerHTML = msg ? '<div class="notice ' + cls + '">' + esc(msg) + '</div>' : ""; }
+  function resetForm(){ $("#add-form").reset(); $("#f-conf").value = 80; $("#f-conf-read").textContent = "80%"; state.supersedes = null; $("#f-supersedes").value = ""; $("#add-cancel").hidden = true; $("#add-title").textContent = "Record something"; $("#add-lede").textContent = "Nothing is ever edited or deleted. This is appended to the chain."; notice("#add-notice", "", ""); setKind(state.kind); }
+  $("#add-cancel").addEventListener("click", resetForm);
+  $("#add-form").addEventListener("submit", function(ev){
+    ev.preventDefault(); var k = state.kind, meta = {};
+    if (k === "decision") { if ($("#f-why").value.trim()) meta.why = $("#f-why").value.trim(); var alts = splitList($("#f-alts").value, ";"); if (alts.length) meta.alternatives = alts; }
+    if (k === "mistake") meta.lesson = $("#f-lesson").value.trim();
+    if (k === "prediction") meta.due = $("#f-due").value + "T00:00:00+00:00";
+    var conf = k === "mistake" ? 1.0 : Number($("#f-conf").value) / 100;
+    var sup = state.supersedes, prevEntry = sup ? state.entries.filter(function(e){ return e.id === sup; })[0] : null;
+    if (prevEntry) { for (var mk in prevEntry.meta) if (!(mk in meta)) meta[mk] = prevEntry.meta[mk]; }
+    var entry = C.make({kind: k, text: $("#f-text").value, tags: splitList($("#f-tags").value, ","), confidence: conf, evidence: splitList($("#f-evidence").value, ","), author: state.author, supersedes: sup, meta: meta,
+      half_life_days: prevEntry ? prevEntry.half_life_days : C.UNSET});
+    var btn = $("#add-submit"); btn.disabled = true;
+    append(entry).then(function(e){ toast((sup ? "Corrected as " : "Recorded ") + e.id); resetForm(); showView("ledger"); })
+      .catch(function(err){ notice("#add-notice", "bad", err.message || String(err)); })
+      .then(function(){ btn.disabled = false; });
+  });
+  function startCorrection(e){
+    resetForm(); setKind(e.kind === "resolution" ? "fact" : e.kind); state.supersedes = e.id; $("#f-supersedes").value = e.id;
+    $("#f-text").value = e.text; $("#f-tags").value = (e.tags || []).join(", "); $("#f-evidence").value = (e.evidence || []).join(", ");
+    $("#f-conf").value = Math.round(e.confidence * 100); $("#f-conf-read").textContent = Math.round(e.confidence * 100) + "%";
+    if (e.meta) { if (e.meta.why) $("#f-why").value = e.meta.why; if (e.meta.alternatives) $("#f-alts").value = [].concat(e.meta.alternatives).join("; "); if (e.meta.lesson) $("#f-lesson").value = e.meta.lesson; }
+    $("#add-cancel").hidden = false; $("#add-title").textContent = "Correct " + e.id; $("#add-lede").textContent = "The original stays in the ledger. This new entry supersedes it.";
+    showView("add"); $("#f-text").focus();
+  }
+
+  // ---------- ledger actions ----------
+  $("#ledger-list").addEventListener("click", function(ev){
+    var act = ev.target.closest("[data-act]");
+    if (act) {
+      ev.stopPropagation(); var id = act.dataset.id, e = state.entries.filter(function(x){ return x.id === id; })[0]; if (!e) return;
+      if (act.dataset.act === "correct") return startCorrection(e);
+      if (act.dataset.act === "retract") { if (!confirm("Retract this entry? It stays in history but stops carrying weight.")) return;
+        return append(C.make({kind: "retraction", text: "retracted " + e.kind + " " + e.id, supersedes: e.id, confidence: 1.0, tags: e.tags, author: state.author})).then(function(){ toast("Retracted " + e.id); }).catch(function(err){ toast(err.message); }); }
+      var outcome = act.dataset.act === "resolve-true";
+      if (C.parseTs(e.meta.due) > new Date() && !confirm("This prediction is not due until " + fmtDate(e.meta.due) + ". Resolve it early only if the outcome is already certain.")) return;
+      return append(C.make({kind: "resolution", text: (outcome ? "CONFIRMED: " : "REFUTED: ") + e.text, meta: {prediction: e.id, outcome: outcome}, confidence: 1.0, tags: e.tags, author: state.author}))
+        .then(function(){ toast((outcome === (e.confidence >= 0.5) ? "Right call. " : "Wrong call. ") + C.verdict(C.calibration(state.entries))); }).catch(function(err){ toast(err.message); });
+    }
+    var r = ev.target.closest(".row"); if (!r) return;
+    state.expanded[r.dataset.id] = !state.expanded[r.dataset.id]; renderLedger();
+  });
+
+  // ---------- tools ----------
+  $("#btn-verify").addEventListener("click", function(){ C.verify(state.entries).then(function(r){ $("#verify-out").innerHTML = r.ok ? '<div class="notice ok">OK: ' + state.entries.length + ' entries, chain intact.</div>' : '<div class="notice bad">BROKEN: ' + r.problems.map(esc).join("<br>") + '</div>'; refreshChain(); }); });
+  $("#btn-export").addEventListener("click", function(){
+    var text = state.entries.map(C.toLine).join("\n") + "\n";
+    var done = function(){ toast("Exported " + state.entries.length + " entries"); };
+    if (state.downloads) state.downloads.save({filename: "cladia-ledger.jsonl.txt", data: text}).then(done).catch(function(err){ if (err.code !== "declined") copy(text).then(done); });
+    else copy(text).then(done).catch(function(){ $("#import-text").value = text; toast("Copy the text from the box below"); });
+  });
+  function copy(t){ return navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(t) : Promise.reject(new Error("no clipboard")); }
+  $("#btn-import").addEventListener("click", function(){
+    if (state.entries.length) return notice("#import-out", "warn", "This ledger already has entries. Import only into an empty ledger; merge on a computer with the CLI.");
+    var lines = $("#import-text").value.split("\n").map(function(l){ return l.trim(); }).filter(Boolean), parsed;
+    try { parsed = lines.map(function(l){ return JSON.parse(l); }); } catch (e) { return notice("#import-out", "bad", "That is not valid JSONL: " + e.message); }
+    C.verify(parsed).then(function(r){
+      if (!r.ok) return notice("#import-out", "bad", "Chain does not verify: " + r.problems[0]);
+      var writes = parsed.map(function(e, i){ var d = {}; for (var k in e) d[k] = e[k]; d.seq = i; return d; });
+      if (state.db) { var col = state.db.collection("entries"); return writes.reduce(function(p, d){ return p.then(function(){ return col.doc(d.id).set(d); }); }, Promise.resolve()).then(function(){ notice("#import-out", "ok", "Imported " + writes.length + " entries."); }); }
+      state.entries = writes; saveLocal(writes); renderAll(); refreshChain(); notice("#import-out", "ok", "Imported " + writes.length + " entries.");
+    }).catch(function(err){ notice("#import-out", "bad", err.message); });
+  });
+
+  // ---------- nav ----------
+  function showView(v){ document.querySelectorAll(".view").forEach(function(s){ s.classList.toggle("active", s.id === "view-" + v); }); document.querySelectorAll("nav.tabs button").forEach(function(b){ b.setAttribute("aria-selected", String(b.dataset.view === v)); }); window.scrollTo(0, 0); if (v === "recall") $("#q").focus(); }
+  document.querySelector("nav.tabs").addEventListener("click", function(ev){ var b = ev.target.closest("button"); if (b) showView(b.dataset.view); });
+  $("#brief-topic").addEventListener("input", renderBrief);
+  $("#q").addEventListener("input", renderRecall);
+  $("#kind-filter").addEventListener("click", function(ev){ var b = ev.target.closest("button"); if (!b) return; state.filterKind = b.dataset.kind; document.querySelectorAll("#kind-filter button").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); }); renderRecall(); });
+  var toastTimer; function toast(msg){ var t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 3200); }
+
+  setKind("fact"); connect();
+})();
+</script>
