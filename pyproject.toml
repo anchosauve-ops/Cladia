@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cladia"
+version = "0.1.0"
+description = "A lineage of memory for agents: an append-only, hash-chained ledger of what was learned, decided, predicted and got wrong."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = []
+keywords = ["agents", "memory", "calibration", "mcp", "ledger"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries",
+]
+
+[project.scripts]
+cladia = "cladia.cli:main"
+
+[tool.setuptools]
+packages = ["cladia"]
