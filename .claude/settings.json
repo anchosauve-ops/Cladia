@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -m cladia brief --budget 3000 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
