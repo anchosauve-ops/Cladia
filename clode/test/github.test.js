@@ -1,0 +1,63 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { GitHub, Workspace, unifiedDiff, lineDiff, globToRegex } from '../github.js'
+import { startFakeGitHub } from './helpers/fake-github.js'
+
+test('workspace: load, read, edit, search, diff, commit to a new branch, then commit again', async (t) => {
+  const gh = await startFakeGitHub({ files: { 'README.md': '# proj\n\nhello\n', 'src/a.js': 'export const a = 1\n', 'src/b.js': 'export const b = 2\n', 'img.png': 'PNG\0binary' } })
+  t.after(() => gh.close())
+  const ws = new Workspace(new GitHub({ token: 'ghp_test', baseUrl: gh.url }), { owner: 'octo', repo: 'proj', branch: 'main' })
+  await ws.load()
+  assert.equal(ws.tree.size, 4)
+  assert.deepEqual(ws.listFiles({ glob: '*.js' }), ['src/a.js', 'src/b.js'])
+  assert.deepEqual(ws.listFiles({ path: 'src' }), ['src/a.js', 'src/b.js'])
+  assert.equal(await ws.readFile('README.md'), '# proj\n\nhello\n')
+  await assert.rejects(() => ws.readFile('img.png'), /binary/)
+  await assert.rejects(() => ws.readFile('nope.txt'), /No such file/)
+  const s = await ws.search('const', { path: 'src' })
+  assert.deepEqual(s.matches.map((m) => `${m.path}:${m.line}`), ['src/a.js:1', 'src/b.js:1'])
+  await assert.rejects(() => ws.editFile('README.md', 'nope', 'x'), /not found/)
+  await ws.editFile('README.md', 'hello', 'hello world')
+  await ws.writeFile('docs/new.md', 'new\n')
+  await ws.deleteFile('src/b.js')
+  assert.deepEqual(ws.changes.map((c) => c.path), ['README.md', 'docs/new.md', 'src/b.js'])
+  assert.equal(await ws.readFile('README.md'), '# proj\n\nhello world\n')
+  assert.deepEqual(ws.listFiles({ glob: '*.js' }), ['src/a.js'])
+  const diff = await ws.diff()
+  assert.equal(diff.find((d) => d.path === 'README.md').patch, '--- a/README.md\n+++ b/README.md\n@@ -1,3 +1,3 @@\n # proj\n \n-hello\n+hello world')
+  assert.equal(diff.find((d) => d.path === 'docs/new.md').additions, 1)
+  assert.equal(diff.find((d) => d.path === 'src/b.js').deletions, 1)
+  const r = await ws.commit('Say hello world', { branch: 'feature/hello' })
+  assert.equal(r.branch, 'feature/hello')
+  assert.deepEqual(r.files.sort(), ['README.md', 'docs/new.md', 'src/b.js'])
+  assert.equal(gh.fileAt('feature/hello', 'README.md'), '# proj\n\nhello world\n')
+  assert.equal(gh.fileAt('feature/hello', 'docs/new.md'), 'new\n')
+  assert.equal(gh.fileAt('feature/hello', 'src/b.js'), undefined)
+  assert.equal(gh.fileAt('main', 'README.md'), '# proj\n\nhello\n', 'main untouched')
+  assert.equal(ws.changes.length, 0)
+  assert.equal(ws.branch, 'feature/hello')
+  // second commit on the same branch is a fast-forward
+  await ws.writeFile('docs/new.md', 'new 2\n')
+  const r2 = await ws.commit('again')
+  assert.equal(gh.commits.get(r2.sha).parents[0], r.sha)
+  assert.equal(gh.fileAt('feature/hello', 'docs/new.md'), 'new 2\n')
+  await assert.rejects(() => ws.commit('empty'), /Nothing to commit/)
+})
+
+test('path safety and unchanged writes', async (t) => {
+  const gh = await startFakeGitHub()
+  t.after(() => gh.close())
+  const ws = await new Workspace(new GitHub({ token: 'ghp_test', baseUrl: gh.url }), { owner: 'octo', repo: 'proj', branch: 'main' }).load()
+  await assert.rejects(() => ws.writeFile('../etc/passwd', 'x'), /Invalid path/)
+  const r = await ws.writeFile('./README.md', '# proj\n')
+  assert.equal(r.unchanged, true)
+  assert.equal(ws.changes.length, 0)
+})
+
+test('diff helpers', () => {
+  assert.deepEqual(lineDiff(['a', 'b', 'c'], ['a', 'x', 'c']), [[' ', 'a'], ['-', 'b'], ['+', 'x'], [' ', 'c']])
+  assert.equal(unifiedDiff('', 'one\ntwo\n', 'f'), '--- a/f\n+++ b/f\n@@ -0,0 +1,2 @@\n+one\n+two')
+  assert.ok(globToRegex('**/*.test.js').test('a/b/c.test.js'))
+  assert.ok(!globToRegex('*.js').test('a/b.ts'))
+  assert.ok(globToRegex('src/**/*.ts').test('src/x/y.ts'))
+})
