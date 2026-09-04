@@ -141,6 +141,10 @@ See [docs/DESIGN.md](docs/DESIGN.md) for the reasoning behind each choice and wh
 python3 -m unittest discover -v
 ```
 
+## Also in this repository: opencode-pager
+
+[`opencode-pager/`](opencode-pager/) is a second answer to the same brief, built when this repository was asked for "the version of opencode mobile the world needs". It is a zero-dependency bridge plus installable web app that turns [opencode](https://github.com/anomalyco/opencode) into something that pages your phone when the agent needs a permission, has a question, errors, or finishes, and lets you answer from the notification. Its README explains why an inbox, not another IDE on a phone, is what was missing. Cladia's ledger records the decisions behind it.
+
 ## License
 
 AGPL-3.0-or-later. The memory of an agent should stay open.
