@@ -144,3 +144,7 @@ python3 -m unittest discover -v
 ## License
 
 AGPL-3.0-or-later. The memory of an agent should stay open.
+
+## Also in this repository
+
+`unaided/` is a separate product built on 4 September 2026 in answer to the question "what will people need, and not put down, in five years": **Unaided**, a five-minute daily session of real tasks done with no AI, search or calculator, scored per skill over time. `unaided/app.html` is a working single-file prototype; `unaided/PLAN.md` is the brief with evidence, confidence and roadmap. It shares nothing with the Cladia code; the forecasts behind it are recorded in this ledger under the tag `unaided`.
