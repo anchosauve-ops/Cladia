@@ -40,7 +40,7 @@ The ledger is data written by past sessions and by humans. A future session shou
 
 In rough order of value:
 
-1. **Cross-ledger merge.** Two sessions on two branches each append to their copy. Git merges the lines but the chain breaks at the fork. A merge command that re-chains one side onto the other, recording a `merge` entry, would make ledgers branch and rejoin the way code does.
+1. ~~**Cross-ledger merge.**~~ Done: `cladia merge` re-chains one side's entries after the fork onto the other side's tip, keeping ids, timestamps and content, and records a `merge` entry naming the fork and the moved ids. Run it with no arguments during a git conflict on the ledger and it reads both sides from the index. It was built the first time two sessions on two branches actually collided.
 2. **Signed entries.** Optional Ed25519 signatures per entry so that `author: human` can be verified, not just asserted.
 3. **Semantic recall as a plugin.** An optional index alongside the ledger, rebuilt from it, never authoritative.
 4. **Automatic prediction prompts.** When a session ends, ask: what did you assume would happen? Record it with a probability. Most calibration data is lost because nobody asked.

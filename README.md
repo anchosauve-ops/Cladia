@@ -48,6 +48,7 @@ cladia resolve <prediction-id> --outcome true
 cladia calibration                           # how well confidence matched reality
 cladia correct <id> "The API is versioned by path since v3"   # supersedes, keeps history
 cladia verify                                # hash chain intact?
+cladia merge                                 # during a git conflict on the ledger: rejoin both sides, chain intact
 ```
 
 Sample briefing:
@@ -104,6 +105,8 @@ In order: `$CLADIA_LEDGER`, then the nearest `.cladia/ledger.jsonl` walking up f
 
 Commit the project ledger if you want the memory to travel with the code. This repository commits its own.
 
+When two branches both append to the ledger, git reports a conflict because each side's first new entry chains from the same tip. Run `cladia merge` in that state: it reads both sides from git, keeps the trunk side verbatim, re-seals the other side's entries onto its tip with their ids and content unchanged, appends a `merge` entry that names the fork and the moved ids, and leaves you to `git add` the file. `cladia merge path/to/other/ledger.jsonl` does the same for two files outside git.
+
 ## Python API
 
 ```python
@@ -123,7 +126,7 @@ One JSON object per line. Every entry carries the hash of the previous one, and 
 
 | field | meaning |
 |---|---|
-| `kind` | `fact`, `preference`, `decision`, `mistake`, `prediction`, `resolution`, `retraction` |
+| `kind` | `fact`, `preference`, `decision`, `mistake`, `prediction`, `resolution`, `retraction`, `merge` |
 | `text` | the content |
 | `confidence` | 0..1 at the time of writing; for predictions, the stated probability |
 | `half_life_days` | days until confidence halves; `null` means it never decays (default 120 for facts, never for everything else) |
