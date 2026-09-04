@@ -32,15 +32,19 @@ def match_score(entry: Entry, qtokens: list[str]) -> float:
         if key in entry.meta:
             ttoks |= set(tokenize(str(entry.meta[key])))
     tagset = set(entry.tags)
+    # Per-token weights sum to at most 1.0 per token, so a tag match always outranks a text
+    # match and the recency bonus (<= 0.15) can never reverse that order. An earlier version
+    # capped the sum at 1.0, which erased the tag advantage on single-word queries and made
+    # the ranking depend on which entry was newer by a second.
     hits = 0.0
     for q in qtokens:
         if q in tagset:
-            hits += 2.0
-        elif q in ttoks:
             hits += 1.0
+        elif q in ttoks:
+            hits += 0.7
         elif any(t.startswith(q) or q.startswith(t) for t in ttoks | tagset if len(q) >= 4 and len(t) >= 4):
-            hits += 0.5
-    return min(1.0, hits / len(qtokens))
+            hits += 0.4
+    return hits / len(qtokens)
 
 
 def recency_bonus(entry: Entry, now: datetime) -> float:

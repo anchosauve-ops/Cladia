@@ -15,6 +15,18 @@ class TestRecall(LedgerCase):
         hits = recall(self.led, "db")
         self.assertEqual([e.id for _, e in hits], [a.id, b.id])
 
+    def test_tag_match_outranks_text_match_even_when_text_match_is_newer(self):
+        # Regression: a 1.0 cap on match_score once tied tag and text matches on single-word
+        # queries, so the newer entry won on the recency bonus and CI flaked on second boundaries.
+        from cladia.model import Entry
+        a = self.led.create("fact", "something about storage", tags=["db"])
+        old_ts = (datetime.now(timezone.utc) - timedelta(days=1)).replace(microsecond=0).isoformat()
+        self.led._rewrite([Entry.from_dict({**a.body(), "ts": old_ts}).seal("0" * 64)])
+        b = self.led.create("fact", "uses a db for things")
+        hits = recall(self.led, "db")
+        self.assertEqual([e.id for _, e in hits], [a.id, b.id])
+        self.assertGreater(hits[0][0] - hits[1][0], 0.15, "the gap must exceed the maximum recency bonus")
+
     def test_prefix_match(self):
         e = self.led.create("fact", "the deployment pipeline is slow")
         self.assertGreater(match_score(e, ["deploy"]), 0)
