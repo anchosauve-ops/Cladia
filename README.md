@@ -144,7 +144,7 @@ See [docs/DESIGN.md](docs/DESIGN.md) for the reasoning behind each choice and wh
 python3 -m unittest discover -v
 ```
 
-## Also in this repository: clode and opencode-pager
+## Also in this repository: clode, opencode-pager and unaided
 
 [`clode/`](clode/) is a coding agent that lives on your phone: a standalone installable web app that works on your GitHub repositories with your own Claude API key, with no computer or server in the loop. Edits are staged on the device, commits and pull requests wait for your approval, and the repository's own CI runs the code.
 
@@ -154,6 +154,4 @@ python3 -m unittest discover -v
 
 AGPL-3.0-or-later. The memory of an agent should stay open.
 
-## Also in this repository
-
-`unaided/` is a separate product built on 4 September 2026 in answer to the question "what will people need, and not put down, in five years": **Unaided**, a five-minute daily session of real tasks done with no AI, search or calculator, scored per skill over time. `unaided/app.html` is a working single-file prototype; `unaided/PLAN.md` is the brief with evidence, confidence and roadmap. It shares nothing with the Cladia code; the forecasts behind it are recorded in this ledger under the tag `unaided`.
+[`unaided/`](unaided/) is a separate product built on 4 September 2026 in answer to the question "what will people need, and not put down, in five years": **Unaided**, a five-minute daily session of real tasks done with no AI, search or calculator, scored per skill over time. `unaided/app.html` is a working single-file prototype; `unaided/PLAN.md` is the brief with evidence, confidence and roadmap. It shares nothing with the Cladia code; the forecasts behind it are recorded in this ledger under the tag `unaided`.
