@@ -1,0 +1,16 @@
+{
+  "name": "opencode-pager",
+  "version": "0.1.0",
+  "description": "The agent pages you. Inbox-first mobile companion for opencode: pending permissions, questions, errors and finished runs on your phone, with push notifications and approve-from-the-lock-screen. Zero dependencies.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "bin": { "opencode-pager": "bin/opencode-pager.js" },
+  "files": ["bin", "src", "web", "README.md"],
+  "engines": { "node": ">=20.0.0" },
+  "scripts": {
+    "start": "node bin/opencode-pager.js",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": ["opencode", "mobile", "pwa", "web-push", "coding-agent", "notifications"],
+  "dependencies": {}
+}

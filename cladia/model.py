@@ -20,6 +20,7 @@ KINDS = (
     "prediction",  # a falsifiable claim with a probability and a due date
     "resolution",  # the outcome of a prediction
     "retraction",  # withdraws an earlier entry
+    "merge",       # bookkeeping: entries from another branch were re-chained onto this one
 )
 
 # Default half-lives in days. None means the entry does not decay.
@@ -31,6 +32,7 @@ DEFAULT_HALF_LIFE: dict[str, float | None] = {
     "prediction": None,
     "resolution": None,
     "retraction": None,
+    "merge": None,
 }
 
 
@@ -100,6 +102,9 @@ class Entry:
                 raise EntryError("a resolution needs meta.outcome true/false")
         if self.kind == "retraction" and not self.supersedes:
             raise EntryError("a retraction must supersede an entry")
+        if self.kind == "merge":
+            if not self.meta.get("fork") or not isinstance(self.meta.get("rechained"), list):
+                raise EntryError("a merge needs meta.fork (the hash where the chains diverged) and meta.rechained (ids)")
 
     # ---- hashing -------------------------------------------------------
     def body(self) -> dict[str, Any]:

@@ -48,6 +48,7 @@ cladia resolve <prediction-id> --outcome true
 cladia calibration                           # how well confidence matched reality
 cladia correct <id> "The API is versioned by path since v3"   # supersedes, keeps history
 cladia verify                                # hash chain intact?
+cladia merge                                 # during a git conflict on the ledger: rejoin both sides, chain intact
 ```
 
 Sample briefing:
@@ -104,6 +105,8 @@ In order: `$CLADIA_LEDGER`, then the nearest `.cladia/ledger.jsonl` walking up f
 
 Commit the project ledger if you want the memory to travel with the code. This repository commits its own.
 
+When two branches both append to the ledger, git reports a conflict because each side's first new entry chains from the same tip. Run `cladia merge` in that state: it reads both sides from git, keeps the trunk side verbatim, re-seals the other side's entries onto its tip with their ids and content unchanged, appends a `merge` entry that names the fork and the moved ids, and leaves you to `git add` the file. `cladia merge path/to/other/ledger.jsonl` does the same for two files outside git.
+
 ## Python API
 
 ```python
@@ -123,7 +126,7 @@ One JSON object per line. Every entry carries the hash of the previous one, and 
 
 | field | meaning |
 |---|---|
-| `kind` | `fact`, `preference`, `decision`, `mistake`, `prediction`, `resolution`, `retraction` |
+| `kind` | `fact`, `preference`, `decision`, `mistake`, `prediction`, `resolution`, `retraction`, `merge` |
 | `text` | the content |
 | `confidence` | 0..1 at the time of writing; for predictions, the stated probability |
 | `half_life_days` | days until confidence halves; `null` means it never decays (default 120 for facts, never for everything else) |
@@ -140,6 +143,12 @@ See [docs/DESIGN.md](docs/DESIGN.md) for the reasoning behind each choice and wh
 ```bash
 python3 -m unittest discover -v
 ```
+
+## Also in this repository: clode and opencode-pager
+
+[`clode/`](clode/) is a coding agent that lives on your phone: a standalone installable web app that works on your GitHub repositories with your own Claude API key, with no computer or server in the loop. Edits are staged on the device, commits and pull requests wait for your approval, and the repository's own CI runs the code.
+
+[`opencode-pager/`](opencode-pager/) is a second answer to the same brief, built when this repository was asked for "the version of opencode mobile the world needs". It is a zero-dependency bridge plus installable web app that turns [opencode](https://github.com/anomalyco/opencode) into something that pages your phone when the agent needs a permission, has a question, errors, or finishes, and lets you answer from the notification. Its README explains why an inbox, not another IDE on a phone, is what was missing. Cladia's ledger records the decisions behind it.
 
 ## License
 
