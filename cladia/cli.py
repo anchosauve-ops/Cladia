@@ -245,6 +245,55 @@ def cmd_show(args):
         print("  superseded by: " + ", ".join(f"{x.id} ({x.kind})" for x in desc))
 
 
+def _git(*argv: str, cwd: str) -> str:
+    import subprocess
+    r = subprocess.run(["git", *argv], cwd=cwd, capture_output=True, text=True)
+    if r.returncode != 0:
+        raise LedgerError(f"git {' '.join(argv)}: {r.stderr.strip() or r.stdout.strip()}")
+    return r.stdout
+
+
+def cmd_merge(args):
+    import tempfile
+    led = _ledger(args)
+    if args.theirs:
+        other = Ledger(args.theirs)
+        if not other.exists():
+            raise LedgerError(f"no such ledger: {args.theirs}")
+        info = led.merge_from(other, keep=args.keep, session=args.session)
+        hint = ""
+    else:
+        # Git conflict mode: read both sides from the index stages of the conflicted ledger file.
+        cwd = str(led.path.parent)
+        top = _git("rev-parse", "--show-toplevel", cwd=cwd).strip()
+        rel = os.path.relpath(str(led.path.resolve()), top)
+        stages = _git("ls-files", "-u", "--", rel, cwd=top)
+        if not stages.strip():
+            raise LedgerError(f"{rel} is not in a merge conflict; pass the other ledger file explicitly")
+        with tempfile.TemporaryDirectory() as td:
+            ours_p, theirs_p = os.path.join(td, "ours.jsonl"), os.path.join(td, "theirs.jsonl")
+            with open(ours_p, "w", encoding="utf-8") as fh:
+                fh.write(_git("show", f":2:{rel}", cwd=top))
+            with open(theirs_p, "w", encoding="utf-8") as fh:
+                fh.write(_git("show", f":3:{rel}", cwd=top))
+            # Rebuild the working file from the stage-2 copy so the merge starts from a clean chain.
+            led._rewrite(Ledger(ours_p).entries())
+            info = led.merge_from(Ledger(theirs_p), keep=args.keep, session=args.session)
+        hint = f"\nnow: git add {rel}"
+    ok, problems = led.verify()
+    if not ok:
+        raise LedgerError("merge produced a broken chain: " + "; ".join(problems))
+    if args.json:
+        _emit(args, info, "")
+        return
+    if info["fast_forward"]:
+        print(f"fast-forwarded to the {info['kept']} side ({info['kept_entries']} new entries)" + hint)
+    elif not info["changed"]:
+        print("nothing to merge: both sides are identical or ours already contains theirs" + hint)
+    else:
+        print(f"kept {info['kept']} ({info['kept_entries']} entries), re-chained {len(info['rechained'])} from the other side; merge entry {info['merge_id']}" + hint)
+
+
 def cmd_mcp(args):
     from .mcp import serve
     serve(_ledger(args))
@@ -320,6 +369,10 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--kind"); s.set_defaults(fn=cmd_log)
 
     s = sub.add_parser("show", help="show one entry with its lineage"); s.add_argument("id"); s.set_defaults(fn=cmd_show)
+    s = sub.add_parser("merge", help="rejoin a ledger that diverged on another branch (re-chains one side onto the other)")
+    s.add_argument("theirs", nargs="?", help="the other ledger.jsonl; omit during a git merge conflict to read both sides from git")
+    s.add_argument("--keep", default="theirs", choices=["theirs", "ours"], help="which side's chain stays verbatim (default: theirs, the trunk)")
+    s.add_argument("--session", default=None); s.set_defaults(fn=cmd_merge)
     s = sub.add_parser("mcp", help="serve the ledger over MCP (stdio)"); s.set_defaults(fn=cmd_mcp)
     return p
 

@@ -15,3 +15,43 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: python -m unittest discover -v
       - run: python -m cladia verify
+
+  pager:
+    name: opencode-pager (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["20", "22"]
+    defaults:
+      run:
+        working-directory: opencode-pager
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Unit and bridge tests (no opencode needed)
+        run: npm test
+      - name: Install opencode for the end-to-end test
+        run: npm install --no-save opencode-ai@latest
+      - name: End-to-end against a real opencode serve
+        run: node --test test/e2e.test.js
+        env:
+          OPENCODE_BIN: ${{ github.workspace }}/opencode-pager/node_modules/.bin/opencode
+          E2E_LOG: "1"
+
+  clode:
+    name: clode (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["20", "22"]
+    defaults:
+      run:
+        working-directory: clode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node --test test/*.test.js
