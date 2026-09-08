@@ -1,0 +1,425 @@
+<title>Unaided</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --paper:#F4F4EE; --sheet:#FCFCF8; --sheet-2:#EAEAE2; --ink:#17181A; --ink-2:#44474D; --muted:#73777F;
+  --rule:#D6D7CF; --rule-strong:#B4B6AC; --line:#C9D6E8;
+  --pen:#C4262E; --pen-ink:#FFFFFF; --pen-soft:#F6DEDF;
+  --good:#1E7B4A; --good-soft:#DCEFE3; --bad:#B3261E; --bad-soft:#F5DAD7; --warn:#8A5A0B; --warn-soft:#F3E6C4;
+  --type:"Courier Prime","Courier New",Courier,monospace;
+  --sans:"Public Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#132620; --sheet:#1A2F28; --sheet-2:#223B32; --ink:#EEF0EA; --ink-2:#C3CBC3; --muted:#8FA098;
+    --rule:#2C463C; --rule-strong:#3F5C50; --line:#2F4A40;
+    --pen:#F2D45C; --pen-ink:#1B1F12; --pen-soft:#3C3A1F;
+    --good:#7ED4A0; --good-soft:#1F4433; --bad:#F08A80; --bad-soft:#4A2622; --warn:#E8C36B; --warn-soft:#3F3418;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#132620; --sheet:#1A2F28; --sheet-2:#223B32; --ink:#EEF0EA; --ink-2:#C3CBC3; --muted:#8FA098;
+  --rule:#2C463C; --rule-strong:#3F5C50; --line:#2F4A40;
+  --pen:#F2D45C; --pen-ink:#1B1F12; --pen-soft:#3C3A1F;
+  --good:#7ED4A0; --good-soft:#1F4433; --bad:#F08A80; --bad-soft:#4A2622; --warn:#E8C36B; --warn-soft:#3F3418;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 var(--sans);min-height:100vh;overflow-x:hidden;max-width:100vw;
+  background-image:repeating-linear-gradient(transparent 0 27px,var(--line) 27px 28px);background-attachment:fixed}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+.app{max-width:560px;margin:0 auto;padding:0 16px 40px}
+header.top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:18px 0 8px;border-bottom:3px double var(--ink)}
+.wordmark{font-family:var(--type);font-weight:700;font-size:26px;letter-spacing:.02em;margin:0;white-space:nowrap}
+.wordmark small{display:block;font-family:var(--sans);font-weight:500;font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:-2px}
+.streak{font-family:var(--type);font-size:14px;color:var(--ink-2);text-align:right;white-space:nowrap}
+.streak b{font-size:22px;color:var(--pen)}
+.view{display:none}.view.active{display:block}
+h2{font-family:var(--type);font-weight:700;font-size:22px;margin:22px 0 8px;text-wrap:balance}
+h3{font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+p{margin:0 0 10px;max-width:62ch}
+.lede{color:var(--ink-2)}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:16px;margin:14px 0;box-shadow:0 1px 0 var(--rule)}
+.sheet.pen{border-left:5px solid var(--pen)}
+.score-line{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.score-line .big{font-family:var(--type);font-weight:700;font-size:56px;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.score-line .big small{font-size:18px;color:var(--muted);letter-spacing:0}
+.delta{font-family:var(--type);font-size:15px}
+.delta.up{color:var(--good)} .delta.down{color:var(--bad)}
+.skills{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.skills li{display:grid;grid-template-columns:118px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:14px}
+.skills .name{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.skills .bar{height:10px;background:var(--sheet-2);border-radius:2px;overflow:hidden}
+.skills .bar i{display:block;height:100%;background:var(--ink);border-radius:2px}
+.skills .val{font-family:var(--type);text-align:right;font-variant-numeric:tabular-nums}
+.btn{appearance:none;border:2px solid var(--ink);background:var(--sheet);color:var(--ink);border-radius:6px;padding:11px 18px;font-weight:700;cursor:pointer;min-height:46px;font-family:var(--sans)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn.ghost{border-color:var(--rule-strong);font-weight:500}
+.btn.block{width:100%}
+.btn.small{padding:6px 12px;min-height:34px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row > .btn{flex:1}
+.spark{display:flex;align-items:flex-end;gap:3px;height:44px;margin-top:8px}
+.spark i{flex:1;background:var(--rule-strong);border-radius:2px 2px 0 0;min-height:3px}
+.spark i.last{background:var(--pen)}
+.hist-note{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* session */
+.progress{display:flex;gap:6px;margin:16px 0 6px}
+.progress i{flex:1;height:5px;background:var(--sheet-2);border-radius:2px}
+.progress i.done{background:var(--ink)} .progress i.now{background:var(--pen)}
+.meta{display:flex;justify-content:space-between;font-family:var(--type);font-size:13px;color:var(--muted)}
+.timer{font-variant-numeric:tabular-nums}
+.timer.low{color:var(--pen);font-weight:700}
+.q{font-family:var(--type);font-size:20px;line-height:1.45;margin:14px 0 12px;text-wrap:pretty;white-space:pre-wrap}
+.q.passage{font-size:17px;border-left:3px solid var(--rule-strong);padding-left:12px}
+.q.big{font-size:32px;text-align:center;margin:18px 0}
+.choices{display:grid;gap:8px;margin:8px 0}
+.choices button{text-align:left;border:1.5px solid var(--rule-strong);background:var(--sheet);border-radius:6px;padding:11px 14px;cursor:pointer;min-height:46px;font-family:var(--type);font-size:16px}
+.choices button[aria-pressed="true"]{border-color:var(--ink);background:var(--sheet-2)}
+.choices button.good{border-color:var(--good);background:var(--good-soft)}
+.choices button.bad{border-color:var(--bad);background:var(--bad-soft)}
+input.answer{width:100%;font-family:var(--type);font-size:26px;text-align:center;padding:10px;border:0;border-bottom:2px solid var(--ink);background:transparent;min-height:56px;border-radius:0}
+textarea.answer{width:100%;font-family:var(--type);font-size:16px;line-height:28px;padding:0 4px;border:0;border-bottom:2px solid var(--ink);background:transparent;min-height:196px;resize:vertical;border-radius:0;
+  background-image:repeating-linear-gradient(transparent 0 27px,var(--rule) 27px 28px)}
+.hint{font-size:13px;color:var(--muted)}
+.count{font-family:var(--type);font-size:13px;color:var(--muted);text-align:right}
+.mark{display:inline-block;font-family:var(--type);font-weight:700;padding:2px 8px;border-radius:3px;font-size:14px}
+.mark.good{color:var(--good);background:var(--good-soft)} .mark.bad{color:var(--bad);background:var(--bad-soft)} .mark.warn{color:var(--warn);background:var(--warn-soft)}
+.feedback{margin:12px 0;font-size:15px}
+.feedback .ans{font-family:var(--type)}
+.rubric{display:grid;gap:8px;margin:10px 0}
+.rubric label{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px;color:var(--ink-2)}
+.rubric input[type=range]{width:120px;accent-color:var(--pen)}
+.stamp{display:inline-block;border:3px solid var(--pen);color:var(--pen);font-family:var(--type);font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:4px;transform:rotate(-5deg);font-size:14px}
+
+/* results */
+.results{list-style:none;padding:0;margin:8px 0}
+.results li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--rule-strong);font-size:15px}
+.results .d{font-family:var(--type);font-variant-numeric:tabular-nums;text-align:right;min-width:48px}
+.results .d.up{color:var(--good)} .results .d.down{color:var(--bad)}
+.results .s{font-family:var(--type);color:var(--muted);text-align:right}
+.share{font-family:var(--type);white-space:pre-wrap;background:var(--sheet-2);padding:12px;border-radius:6px;font-size:14px;overflow-x:auto}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:92vw;text-align:center}
+.toast.show{opacity:1}
+details.about{margin:26px 0 0;border-top:1px solid var(--rule-strong)}
+details.about summary{cursor:pointer;padding:12px 0;font-weight:600;color:var(--ink-2)}
+details.about p{font-size:14px;color:var(--ink-2)}
+.foot{font-size:12px;color:var(--muted);margin-top:18px}
+</style>
+
+<div class="app">
+  <header class="top">
+    <h1 class="wordmark">Unaided<small>five minutes, no help</small></h1>
+    <div class="streak" id="streak"></div>
+  </header>
+
+  <main>
+    <section class="view active" id="view-home">
+      <div class="sheet pen">
+        <div class="score-line"><div class="big" id="home-score">–<small>/100</small></div><div class="delta" id="home-delta"></div></div>
+        <p class="lede" id="home-lede" style="margin-top:6px"></p>
+        <ul class="skills" id="home-skills"></ul>
+      </div>
+      <button class="btn primary block" type="button" id="btn-start">Start today's session</button>
+      <p class="hint" style="margin-top:8px;text-align:center" id="home-sub"></p>
+      <div class="sheet" id="home-history" hidden>
+        <h3 style="margin-top:0">Last sessions</h3>
+        <div class="spark" id="spark"></div>
+        <div class="hist-note" id="spark-note"></div>
+      </div>
+      <details class="about"><summary>What this is</summary>
+        <p>Every session is a fresh set of short tasks you do with no assistant, no search and no calculator: hold a passage in memory, do arithmetic in your head, estimate a quantity, write a paragraph, follow a chain of reasoning, spell, and keep your bearings.</p>
+        <p>Your Unaided score is not a measure of intelligence and makes no health claim. It is a record of what you can still do by yourself, and how that changes as you hand more to machines. Pilots hand-fly on purpose so they can when it counts. This is that, for the rest of us.</p>
+        <p>Scores stay on this device. Nothing is sent anywhere, except the paragraph you write, which can be graded by Claude if you allow it.</p>
+      </details>
+    </section>
+
+    <section class="view" id="view-session">
+      <div class="progress" id="progress"></div>
+      <div class="meta"><span id="drill-name"></span><span class="timer" id="timer"></span></div>
+      <div id="drill"></div>
+    </section>
+
+    <section class="view" id="view-results">
+      <h2 id="res-title">Session marked</h2>
+      <div class="sheet pen">
+        <div class="score-line"><div class="big" id="res-score">–<small>/100</small></div><div class="delta" id="res-delta"></div></div>
+        <ul class="results" id="res-list"></ul>
+      </div>
+      <p class="lede" id="res-note"></p>
+      <pre class="share" id="share"></pre>
+      <div class="row" style="margin-top:12px"><button class="btn ghost" type="button" id="btn-copy">Copy card</button><button class="btn primary" type="button" id="btn-home">Done</button></div>
+      <p class="foot">Come back tomorrow. A day without a session ends the streak, and the drills get easier when you skip, harder when you don't.</p>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+/* Content banks. Passages are fictional so that recall is tested, not trivia. */
+var PASSAGES = [
+  {text:"The Harrow Street library moves to winter hours on Monday: it will open at nine and close at six, except Thursdays, when it stays open until eight for the repair café. The children's room is closed for repainting until the fourteenth. Returned books can go in the blue bin by the side door.",
+   qs:[["On which day does the library stay open late?", ["Monday","Thursday","Friday","Saturday"], 1],["What time does it close on ordinary days?", ["Five","Six","Seven","Eight"], 1],["What colour is the returns bin?", ["Red","Green","Blue","Grey"], 2]]},
+  {text:"Mara's train leaves platform four at 7:42 and reaches Dunmore at 9:10, where she has eleven minutes to change to the 9:21 for Kell. She is meeting Tobias outside the north entrance, and he has asked her to bring the grey folder and the spare key to the boathouse.",
+   qs:[["Which platform does the first train leave from?", ["Two","Three","Four","Seven"], 2],["How long is the change at Dunmore?", ["Eight minutes","Eleven minutes","Fifteen minutes","Twenty minutes"], 1],["What is Mara asked to bring besides the folder?", ["A map","A spare key","A ticket","A lamp"], 1]]},
+  {text:"The council approved three changes to the market square: the fountain will be drained and repaired in April, stalls will move to the east side while the paving is relaid, and parking on the square will end on the first of June. Traders were promised a rent reduction of one fifth during the works.",
+   qs:[["When will parking on the square end?", ["First of April","First of May","First of June","First of July"], 2],["To which side will the stalls move?", ["North","East","South","West"], 1],["What rent reduction were traders promised?", ["One tenth","One fifth","One quarter","One half"], 1]]},
+  {text:"To reset the boiler, hold the green button for six seconds until the light blinks twice, then turn the dial to setting three. If the light stays red, check the water pressure gauge on the left pipe; it should read between one and one and a half bar. Call Odile, not the manufacturer, if it fails again.",
+   qs:[["How long should the green button be held?", ["Three seconds","Six seconds","Ten seconds","Fifteen seconds"], 1],["Which setting should the dial go to?", ["One","Two","Three","Four"], 2],["Who should be called if it fails again?", ["The manufacturer","The landlord","Odile","The plumber"], 2]]},
+  {text:"The recipe serves four: brown two onions in butter, add a teaspoon of cumin and a pinch of salt, then twelve hundred grams of chopped squash and enough stock to cover. Simmer for twenty-five minutes, blend, and finish with lime juice. It keeps for three days in the fridge.",
+   qs:[["How much squash does the recipe use?", ["600 g","900 g","1,200 g","1,500 g"], 2],["What spice is added with the onions?", ["Cumin","Paprika","Coriander","Turmeric"], 0],["How long does it keep in the fridge?", ["One day","Two days","Three days","A week"], 2]]},
+  {text:"Delivery for order 5817 was attempted at 14:05 and left with a neighbour at number 22, who signed as R. Adeyemi. The parcel contains two boxes; the smaller one is marked fragile. Redelivery can be requested by 20:00 the same day, otherwise the parcel goes to the depot on Lark Lane.",
+   qs:[["At which house number was the parcel left?", ["12","20","22","25"], 2],["How many boxes are in the parcel?", ["One","Two","Three","Four"], 1],["Where is the depot?", ["Lark Lane","Harrow Street","Mill Road","Kell"], 0]]},
+  {text:"The hike starts at the Ashby car park and climbs steadily for two kilometres to a stone marker, then turns sharply left along the ridge. There is no water after the marker, so fill bottles at the tap by the gate. The last bus back leaves the village at 17:40 and does not run on Sundays.",
+   qs:[["How far is the climb to the stone marker?", ["One kilometre","Two kilometres","Four kilometres","Six kilometres"], 1],["Which way does the path turn at the marker?", ["Left","Right","Straight on","Back"], 0],["When does the last bus leave?", ["16:40","17:10","17:40","18:40"], 2]]},
+  {text:"Ines rents the studio on the second floor for three hundred and eighty a month, bills included except electricity. The lease runs until the end of September and needs two months' notice. The landlord, Mr Faulks, keeps a spare key at the pharmacy on the corner and asks that the roof door stay locked.",
+   qs:[["What is not included in the rent?", ["Water","Heating","Electricity","Internet"], 2],["How much notice does the lease need?", ["One month","Two months","Three months","Six months"], 1],["Where is the spare key kept?", ["At the bakery","At the pharmacy","With a neighbour","In the studio"], 1]]}
+];
+
+/* Estimation: quantities with well-established values. Scored on a log scale. */
+var ESTIMATES = [
+  ["How many seconds are in a day?", 86400, "s"],["How many minutes are in a week?", 10080, "min"],["How many days are in ten years, roughly?", 3652, "days"],
+  ["How tall is the Eiffel Tower, in metres?", 330, "m"],["How long is a marathon, in kilometres?", 42.2, "km"],["How far is the Moon from Earth, in kilometres?", 384400, "km"],
+  ["What is the population of the world, in billions?", 8.2, "bn"],["What is the population of Japan, in millions?", 124, "m"],["How many bones are in the adult human body?", 206, ""],
+  ["What is the speed of sound in air, in metres per second?", 343, "m/s"],["How many litres are in a US gallon?", 3.785, "L"],["How many centimetres are in a mile?", 160934, "cm"],
+  ["How many keys does a standard piano have?", 88, ""],["What is the boiling point of water at sea level, in Fahrenheit?", 212, "°F"],["How many hours of sleep does a person get in a year at 7 hours a night?", 2555, "h"],
+  ["How many heartbeats does a resting adult have in a day, at 70 a minute?", 100800, ""],["How deep is the deepest point of the ocean, in metres?", 10935, "m"],["What is the diameter of Earth, in kilometres?", 12742, "km"],
+  ["How many words are in a typical 300-page novel?", 90000, "words"],["How many teeth does an adult have, with wisdom teeth?", 32, ""],["How many kilometres is it from London to New York?", 5570, "km"],
+  ["How many grams are in a pound?", 454, "g"],["How many steps is a 5-kilometre walk, roughly?", 6500, "steps"],["How many millilitres are in a teaspoon?", 5, "mL"],
+  ["At 100 km/h, how many hours does a 1,500 km drive take?", 15, "h"],["How many square metres is a tennis court?", 261, "m²"],["What is the average human body temperature, in Celsius?", 37, "°C"],
+  ["How many years ago did the last dinosaurs go extinct, in millions?", 66, "m yrs"],["How many minutes does light take to reach Earth from the Sun?", 8.3, "min"],["How many litres of water does a standard bath hold?", 150, "L"]
+];
+
+/* Spelling: the correct form and a common misspelling. */
+var SPELL = [
+  ["necessary","neccessary"],["separate","seperate"],["definitely","definately"],["occurrence","occurence"],["accommodate","accomodate"],["embarrass","embarass"],
+  ["maintenance","maintainance"],["privilege","priviledge"],["conscience","concience"],["rhythm","rythm"],["liaison","liason"],["millennium","millenium"],
+  ["harass","harrass"],["occasion","occassion"],["recommend","reccomend"],["existence","existance"],["judgment","judgement "],["pronunciation","pronounciation"],
+  ["questionnaire","questionaire"],["restaurant","restaurent"],["calendar","calender"],["cemetery","cemetary"],["fluorescent","flourescent"],["guarantee","garantee"],
+  ["independent","independant"],["lightning","lightening "],["perseverance","perseverence"],["threshold","threshhold"],["vacuum","vaccuum"],["weird","wierd"]
+].filter(function(p){ return p[1].trim() === p[1]; });
+
+var WRITING = [
+  "Explain to a friend why they should (or should not) keep a paper notebook, in one paragraph.",
+  "Describe the last meal you cooked, so that someone could roughly make it.",
+  "Argue for one rule every group chat should have.",
+  "Tell a new colleague how to get from your front door to the nearest shop, without naming the shop.",
+  "Describe a place you know well to someone who has never seen it.",
+  "Make the case for a four-day week, or against it, in one paragraph.",
+  "Explain what a streak is, and why people keep them, to someone who has never used an app.",
+  "Write the paragraph you would want read aloud at a friend's retirement.",
+  "Describe how to change a flat bicycle tyre, step by step, from memory.",
+  "Persuade a sceptic that a daily five-minute habit is worth more than an occasional hour."
+];
+
+var NAMES = ["Ana","Bo","Cy","Dev","Eli","Fay","Gus","Ida","Jo","Kim","Lee","Mo"];
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var esc = function(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+  var SKILLS = [["recall","Recall"],["arithmetic","Arithmetic"],["estimation","Estimation"],["reasoning","Reasoning"],["bearings","Bearings"],["spelling","Spelling"],["writing","Writing"]];
+  var LABEL = {}; SKILLS.forEach(function(s){ LABEL[s[0]] = s[1]; });
+  var KEY = "unaided.v1";
+  var state = load();
+  var sampleFn = null;
+  if (window.claude && window.claude.use) window.claude.use("sample").then(function(s){ sampleFn = s; }).catch(function(){});
+
+  function fresh(){ var sk = {}, lv = {}; SKILLS.forEach(function(s){ sk[s[0]] = null; lv[s[0]] = 1; }); return {skills: sk, levels: lv, history: [], streak: {current: 0, longest: 0, last: null}, used: {}}; }
+  function load(){ try { var raw = localStorage.getItem(KEY); if (raw) { var d = JSON.parse(raw); if (d && d.skills) return d; } } catch (e) {} return fresh(); }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function today(){ var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function daysBetween(a, b){ return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000); }
+  function overall(sk){ var v = SKILLS.map(function(s){ return sk[s[0]]; }).filter(function(x){ return x != null; }); return v.length ? Math.round(v.reduce(function(a, b){ return a + b; }, 0) / v.length) : null; }
+  function rnd(n){ return Math.floor(Math.random() * n); }
+  function pick(arr){ return arr[rnd(arr.length)]; }
+  function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function pickUnused(bucket, n){ var used = state.used[bucket] || []; var free = []; for (var i = 0; i < n; i++) if (used.indexOf(i) < 0) free.push(i); if (!free.length) { used = []; for (i = 0; i < n; i++) free.push(i); } var idx = pick(free); used.push(idx); state.used[bucket] = used; return idx; }
+
+  // ---------- home ----------
+  function renderHome(){
+    var o = overall(state.skills), last = state.history[state.history.length - 1], prev = state.history[state.history.length - 2];
+    $("#home-score").innerHTML = (o == null ? "–" : o) + "<small>/100</small>";
+    var dl = $("#home-delta"); dl.className = "delta";
+    if (last && prev) { var d = last.score - prev.score; dl.textContent = (d >= 0 ? "+" : "") + d + " vs last time"; dl.className += d > 0 ? " up" : d < 0 ? " down" : ""; } else dl.textContent = "";
+    $("#home-lede").textContent = o == null ? "Your record of what you can do by yourself, with no assistant, search or calculator. The first session sets the baseline." : "What you can still do by yourself. " + (state.history.length + " session" + (state.history.length === 1 ? "" : "s") + " on record.");
+    $("#home-skills").innerHTML = SKILLS.map(function(s){ var v = state.skills[s[0]]; return '<li><span class="name">' + s[1] + '</span><span class="bar"><i style="width:' + (v == null ? 0 : v) + '%"></i></span><span class="val">' + (v == null ? "–" : v) + '</span></li>'; }).join("");
+    var doneToday = state.streak.last === today();
+    $("#btn-start").textContent = doneToday ? "Do another session" : state.history.length ? "Start today's session" : "Start the baseline session";
+    $("#home-sub").textContent = doneToday ? "Today is already on the record. Extra sessions still move your scores." : "Seven short tasks. About five minutes. Put the phone in one hand and nothing in the other.";
+    var sk = $("#streak"); sk.innerHTML = state.streak.current ? '<b>' + state.streak.current + '</b> day' + (state.streak.current === 1 ? "" : "s") + (state.streak.longest > state.streak.current ? '<br>best ' + state.streak.longest : "") : (state.history.length ? "streak ended" : "day 0");
+    var h = state.history.slice(-14); $("#home-history").hidden = h.length < 2;
+    if (h.length >= 2) { var max = Math.max.apply(null, h.map(function(x){ return x.score; })) || 1; $("#spark").innerHTML = h.map(function(x, i){ return '<i class="' + (i === h.length - 1 ? "last" : "") + '" style="height:' + Math.max(6, Math.round(x.score / max * 100)) + '%" title="' + x.date + ': ' + x.score + '"></i>'; }).join(""); $("#spark-note").textContent = h[0].date + " to " + h[h.length - 1].date + " · best " + max; }
+  }
+
+  // ---------- drill generators ----------
+  function genArithmetic(level){
+    var a, b, q, ans;
+    var kind = pick(level <= 1 ? ["add","sub"] : level === 2 ? ["add","sub","mul1"] : level === 3 ? ["sub3","mul1","pct"] : level === 4 ? ["mul2","div","pct"] : ["mul2","div","pct","add3"]);
+    switch (kind) {
+      case "add": a = 10 + rnd(90); b = 10 + rnd(90); q = a + " + " + b; ans = a + b; break;
+      case "sub": a = 30 + rnd(70); b = 10 + rnd(a - 10); q = a + " − " + b; ans = a - b; break;
+      case "add3": a = 100 + rnd(900); b = 100 + rnd(900); q = a + " + " + b; ans = a + b; break;
+      case "sub3": a = 200 + rnd(800); b = 50 + rnd(a - 50); q = a + " − " + b; ans = a - b; break;
+      case "mul1": a = 12 + rnd(88); b = 3 + rnd(7); q = a + " × " + b; ans = a * b; break;
+      case "mul2": a = 11 + rnd(20); b = 11 + rnd(15); q = a + " × " + b; ans = a * b; break;
+      case "div": b = 3 + rnd(9); ans = 4 + rnd(30); a = ans * b; q = a + " ÷ " + b; break;
+      case "pct": var p = pick([10, 15, 20, 25, 30, 40, 50, 75]); b = pick([40, 60, 80, 120, 160, 200, 240, 300, 360, 480]); q = p + "% of " + b; ans = p * b / 100; break;
+    }
+    return {q: q, ans: ans};
+  }
+  function genBearings(level){
+    var dirs = ["North","East","South","West"], start = rnd(4), moves = [], d = start, n = 1 + level;
+    for (var i = 0; i < n; i++) { var m = pick(["Turn right", "Turn left", "Turn around", "Turn right", "Turn left"]); moves.push(m); d = (d + (m === "Turn right" ? 1 : m === "Turn left" ? 3 : 2)) % 4; }
+    return {q: "You are facing " + dirs[start] + ".\n" + moves.join(".\n") + ".\nWhich way are you facing?", choices: dirs, ans: d};
+  }
+  function genOrdering(level){
+    var n = level >= 3 ? 4 : 3, names = shuffle(NAMES).slice(0, n), order = shuffle(names); // order[0] is tallest
+    var rel = pick([["taller than","tallest","shortest"],["older than","oldest","youngest"],["faster than","fastest","slowest"]]);
+    var facts = [];
+    for (var i = 0; i < n - 1; i++) { if (rnd(2)) facts.push(order[i] + " is " + rel[0] + " " + order[i + 1]); else facts.push(order[i + 1] + " is not " + rel[0] + " " + order[i]); }
+    facts = shuffle(facts);
+    var askTop = rnd(2) === 0, ans = askTop ? order[0] : order[n - 1];
+    var choices = shuffle(names);
+    return {q: facts.join(". ") + ".\nWho is the " + (askTop ? rel[1] : rel[2]) + "?", choices: choices, ans: choices.indexOf(ans)};
+  }
+  function genSeries(level){
+    var kind = pick(level <= 2 ? ["arith","arith","geo"] : ["arith","geo","alt","sq"]), s = [], a, d, i;
+    if (kind === "arith") { a = 1 + rnd(20); d = pick([2,3,4,5,6,7,9,11,-3,-4]); for (i = 0; i < 5; i++) s.push(a + d * i); }
+    else if (kind === "geo") { a = pick([1,2,3,5]); d = pick([2,3]); for (i = 0; i < 5; i++) s.push(a * Math.pow(d, i)); }
+    else if (kind === "alt") { a = 2 + rnd(9); var d1 = pick([3,4,5]), d2 = pick([1,2]); var v = a; for (i = 0; i < 5; i++) { s.push(v); v += (i % 2 === 0) ? d1 : -d2; } }
+    else { a = 1 + rnd(4); for (i = 0; i < 5; i++) s.push((a + i) * (a + i)); }
+    var next = kind === "arith" ? s[4] + d : kind === "geo" ? s[4] * d : kind === "alt" ? s[4] + ((4 % 2 === 0) ? pick([0]) + (s[1] - s[0]) : 0) : (a + 5) * (a + 5);
+    if (kind === "alt") next = s[4] + (s[1] - s[0]);
+    return {q: s.join(", ") + ", …\nWhat comes next?", ans: next};
+  }
+
+  // ---------- session ----------
+  var session = null, timerHandle = null, deadline = 0;
+  function startSession(){
+    var lv = state.levels;
+    var pi = pickUnused("passages", PASSAGES.length), passage = PASSAGES[pi];
+    var est = shuffle(ESTIMATES).slice(0, 3), sp = shuffle(SPELL).slice(0, 6), wp = WRITING[pickUnused("writing", WRITING.length)];
+    var ar = []; for (var i = 0; i < 6; i++) ar.push(genArithmetic(lv.arithmetic));
+    var rs = [genOrdering(lv.reasoning), genSeries(lv.reasoning), genOrdering(lv.reasoning), genSeries(lv.reasoning)];
+    var br = [genBearings(lv.bearings), genBearings(lv.bearings), genBearings(lv.bearings)];
+    session = {results: {}, steps: [
+      {skill: "recall", name: "Read once", secs: 30, kind: "read", passage: passage},
+      {skill: "arithmetic", name: "Arithmetic", secs: 75, kind: "numeric", items: ar},
+      {skill: "estimation", name: "Estimation", secs: 60, kind: "estimate", items: est},
+      {skill: "reasoning", name: "Reasoning", secs: 90, kind: "mixed", items: rs},
+      {skill: "bearings", name: "Bearings", secs: 45, kind: "choice", items: br},
+      {skill: "spelling", name: "Spelling", secs: 40, kind: "spell", items: sp},
+      {skill: "writing", name: "Writing", secs: 150, kind: "write", prompt: wp},
+      {skill: "recall", name: "Recall", secs: 45, kind: "quiz", passage: passage}
+    ], step: 0, before: JSON.parse(JSON.stringify(state.skills))};
+    showView("session"); runStep();
+  }
+  function runStep(){
+    var st = session.steps[session.step]; if (!st) return finish();
+    $("#progress").innerHTML = session.steps.map(function(_, i){ return '<i class="' + (i < session.step ? "done" : i === session.step ? "now" : "") + '"></i>'; }).join("");
+    $("#drill-name").textContent = (session.step + 1) + " of " + session.steps.length + " · " + st.name;
+    var d = $("#drill"); d.innerHTML = "";
+    st.i = 0; st.correct = 0; st.answers = [];
+    if (st.kind === "read") d.innerHTML = '<p class="hint">Read this once. You will be asked about it at the end of the session, after everything else.</p><div class="q passage">' + esc(st.passage.text) + '</div><button class="btn primary block" type="button" id="next">I have read it</button>', $("#next").onclick = function(){ endStep(null); };
+    else if (st.kind === "write") renderWrite(st);
+    else renderItem(st);
+    startTimer(st.secs, function(){ if (st.kind === "write") submitWrite(st, true); else endStep(st.kind === "read" ? null : st.correct / (st.items ? st.items.length : st.passage.qs.length)); });
+  }
+  function startTimer(secs, onEnd){
+    clearInterval(timerHandle); deadline = Date.now() + secs * 1000;
+    var tick = function(){ var left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000)); var t = $("#timer"); t.textContent = Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0"); t.className = "timer" + (left <= 10 ? " low" : ""); if (left <= 0) { clearInterval(timerHandle); onEnd(); } };
+    tick(); timerHandle = setInterval(tick, 250);
+  }
+  function renderItem(st){
+    var d = $("#drill"), items = st.kind === "quiz" ? st.passage.qs : st.items, it = items[st.i];
+    if (!it) return endStep(st.correct / items.length);
+    var n = st.i + 1 + " / " + items.length;
+    if (st.kind === "numeric" || (st.kind === "mixed" && it.ans !== undefined && !it.choices)) {
+      d.innerHTML = '<div class="count">' + n + '</div><div class="q big">' + esc(it.q) + '</div><input class="answer" id="ans" inputmode="numeric" autocomplete="off" aria-label="Answer"><p class="hint" style="text-align:center;margin-top:10px">Press enter. No calculator.</p>';
+      var inp = $("#ans"); inp.focus();
+      inp.onkeydown = function(ev){ if (ev.key !== "Enter") return; var v = parseFloat(inp.value.replace(/,/g, "")); if (isNaN(v)) return; var ok = Math.abs(v - it.ans) < 1e-9; st.correct += ok ? 1 : 0; st.answers.push([it.q, v, it.ans, ok]); flashThen(d, ok, "Answer: " + it.ans, function(){ st.i++; renderItem(st); }); };
+    } else if (st.kind === "estimate") {
+      d.innerHTML = '<div class="count">' + n + '</div><div class="q">' + esc(it[0]) + '</div><input class="answer" id="ans" inputmode="decimal" autocomplete="off" aria-label="Estimate"><p class="hint" style="text-align:center;margin-top:10px">A number in ' + esc(it[2] || "plain units") + '. Being within a quarter scores nearly full marks; ten times out scores nothing.</p>';
+      var inp2 = $("#ans"); inp2.focus();
+      inp2.onkeydown = function(ev){ if (ev.key !== "Enter") return; var v = parseFloat(inp2.value.replace(/,/g, "")); if (isNaN(v) || v <= 0) return; var err = Math.abs(Math.log10(v / it[1])), sc = Math.max(0, 1 - err); st.correct += sc; st.answers.push([it[0], v, it[1], sc]); flashThen(d, sc >= 0.7, "Actual: about " + it[1].toLocaleString() + (it[2] ? " " + it[2] : "") + " · " + Math.round(sc * 100) + "%", function(){ st.i++; renderItem(st); }); };
+    } else if (st.kind === "spell") {
+      var opts = shuffle([it[0], it[1]]);
+      d.innerHTML = '<div class="count">' + n + '</div><div class="q">Which is spelled correctly?</div><div class="choices">' + opts.map(function(o){ return '<button type="button" data-v="' + esc(o) + '">' + esc(o) + '</button>'; }).join("") + '</div>';
+      d.querySelectorAll(".choices button").forEach(function(b){ b.onclick = function(){ var ok = b.dataset.v === it[0]; st.correct += ok ? 1 : 0; st.answers.push([it[0], b.dataset.v, it[0], ok]); b.className = ok ? "good" : "bad"; setTimeout(function(){ st.i++; renderItem(st); }, ok ? 350 : 900); }; });
+    } else {
+      var q = st.kind === "quiz" ? it[0] : it.q, choices = st.kind === "quiz" ? it[1] : it.choices, ans = st.kind === "quiz" ? it[2] : it.ans;
+      d.innerHTML = '<div class="count">' + n + '</div><div class="q">' + esc(q) + '</div><div class="choices">' + choices.map(function(c, i){ return '<button type="button" data-i="' + i + '">' + esc(c) + '</button>'; }).join("") + '</div>';
+      d.querySelectorAll(".choices button").forEach(function(b){ b.onclick = function(){ var ok = Number(b.dataset.i) === ans; st.correct += ok ? 1 : 0; st.answers.push([q, choices[b.dataset.i], choices[ans], ok]); b.className = ok ? "good" : "bad"; if (!ok) d.querySelector('[data-i="' + ans + '"]').className = "good"; setTimeout(function(){ st.i++; renderItem(st); }, ok ? 350 : 1100); }; });
+    }
+  }
+  function flashThen(d, ok, msg, next){ var f = document.createElement("div"); f.className = "feedback"; f.innerHTML = '<span class="mark ' + (ok ? "good" : "bad") + '">' + (ok ? "Right" : "Not quite") + '</span> <span class="ans">' + esc(msg) + '</span>'; d.appendChild(f); var inp = $("#ans"); if (inp) inp.disabled = true; setTimeout(next, ok ? 500 : 1300); }
+  function renderWrite(st){
+    var d = $("#drill");
+    d.innerHTML = '<div class="q">' + esc(st.prompt) + '</div><textarea class="answer" id="essay" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="sentences" aria-label="Your paragraph"></textarea><div class="count" id="wc">0 words · at least 40</div><p class="hint">Pasting is off. Autocorrect is off. Write it the way you would say it.</p><button class="btn primary block" type="button" id="submit-essay" disabled>Hand it in</button>';
+    var ta = $("#essay"); ta.focus();
+    ta.addEventListener("paste", function(ev){ ev.preventDefault(); toast("No pasting. This one is yours."); });
+    ta.addEventListener("input", function(){ var w = ta.value.trim().split(/\s+/).filter(Boolean).length; $("#wc").textContent = w + " words · at least 40"; $("#submit-essay").disabled = w < 40; });
+    $("#submit-essay").onclick = function(){ submitWrite(st, false); };
+  }
+  function submitWrite(st, timedOut){
+    clearInterval(timerHandle);
+    var text = ($("#essay") || {value: ""}).value.trim(), words = text.split(/\s+/).filter(Boolean).length, d = $("#drill");
+    st.text = text; st.words = words;
+    if (words < 15) { st.answers.push(["writing", words + " words", "", false]); return endStep(0); }
+    if (sampleFn) {
+      d.innerHTML = '<div class="q passage">' + esc(text) + '</div><p class="hint" id="grading">Marking… (Claude reads it once; nothing is stored)</p>';
+      var prompt = "You are marking a short paragraph written by hand in about two minutes, with no tools, in response to this prompt:\n\n" + st.prompt + "\n\nThe paragraph:\n\"\"\"\n" + text.slice(0, 4000) + "\n\"\"\"\n\nScore it honestly on three things, each 1 to 5: clarity (can a reader follow it), substance (does it actually answer the prompt with specifics), mechanics (grammar, spelling, sentence control). Reply with only a JSON object: {\"clarity\": n, \"substance\": n, \"mechanics\": n, \"comment\": \"one sentence of specific, useful feedback\"}";
+      sampleFn.json(prompt, {modelTier: "quick"}).then(function(r){ var s = (Number(r.clarity) + Number(r.substance) + Number(r.mechanics)); if (!(s >= 3 && s <= 15)) throw {code: "invalid_json"}; st.grade = r; st.answers.push(["writing", words + " words", "Claude: " + s + "/15", s >= 9]); endStep((s - 3) / 12, r.comment); })
+        .catch(function(e){ if (e && e.code === "not_granted") sampleFn = null; selfMark(st, timedOut); });
+    } else selfMark(st, timedOut);
+  }
+  function selfMark(st, timedOut){
+    var d = $("#drill");
+    d.innerHTML = '<div class="q passage">' + esc(st.text) + '</div><p class="hint">' + (timedOut ? "Time. " : "") + 'Mark it yourself, honestly. Read it back first.</p><div class="rubric">' +
+      [["clarity","Could a stranger follow it?"],["substance","Does it answer the prompt with specifics?"],["mechanics","Grammar, spelling, sentence control?"]].map(function(r){ return '<label><span>' + r[1] + '</span><input type="range" name="' + r[0] + '" min="1" max="5" value="3"></label>'; }).join("") +
+      '</div><button class="btn primary block" type="button" id="submit-mark">Record the mark</button>';
+    $("#submit-mark").onclick = function(){ var s = 0; d.querySelectorAll("input[type=range]").forEach(function(i){ s += Number(i.value); }); st.answers.push(["writing", st.words + " words", "self: " + s + "/15", s >= 9]); endStep((s - 3) / 12); };
+  }
+  function endStep(acc, comment){
+    clearInterval(timerHandle);
+    var st = session.steps[session.step];
+    if (acc !== null && acc !== undefined) { var k = st.skill; var prev = session.results[k]; session.results[k] = {acc: prev ? (prev.acc + acc) / 2 : acc, comment: comment || (prev && prev.comment), answers: (prev ? prev.answers : []).concat(st.answers)}; }
+    session.step++; runStep();
+  }
+  function finish(){
+    var before = session.before, lines = [], t = today();
+    SKILLS.forEach(function(s){ var k = s[0], r = session.results[k]; if (!r) return; var target = Math.round(r.acc * 100), old = state.skills[k];
+      var nw = old == null ? target : Math.round(old + 0.35 * (target - old)); state.skills[k] = Math.max(0, Math.min(100, nw));
+      if (r.acc >= 0.85) state.levels[k] = Math.min(5, state.levels[k] + 1); else if (r.acc < 0.4) state.levels[k] = Math.max(1, state.levels[k] - 1);
+      lines.push({k: k, score: state.skills[k], delta: old == null ? null : state.skills[k] - old, acc: r.acc, comment: r.comment}); });
+    var score = overall(state.skills), prevScore = overall(before);
+    var st = state.streak;
+    if (st.last !== t) { var gap = st.last ? daysBetween(st.last, t) : null; st.current = (gap === 1) ? st.current + 1 : 1; st.last = t; st.longest = Math.max(st.longest, st.current); }
+    var snap = {date: t, score: score}; SKILLS.forEach(function(s){ snap[s[0]] = state.skills[s[0]]; }); state.history.push(snap); if (state.history.length > 400) state.history.shift();
+    save();
+    $("#res-score").innerHTML = score + "<small>/100</small>";
+    var dl = $("#res-delta"); dl.className = "delta"; if (prevScore != null) { var dd = score - prevScore; dl.textContent = (dd >= 0 ? "+" : "") + dd; dl.className += dd > 0 ? " up" : dd < 0 ? " down" : ""; } else dl.innerHTML = '<span class="stamp">baseline</span>';
+    $("#res-list").innerHTML = lines.map(function(l){ return '<li><span>' + LABEL[l.k] + (l.comment ? '<br><span class="hint">' + esc(l.comment) + '</span>' : "") + '</span><span class="s">' + Math.round(l.acc * 100) + '%</span><span class="d ' + (l.delta > 0 ? "up" : l.delta < 0 ? "down" : "") + '">' + (l.delta == null ? l.score : (l.delta >= 0 ? "+" : "") + l.delta) + '</span></li>'; }).join("");
+    var weakest = lines.slice().sort(function(a, b){ return a.acc - b.acc; })[0];
+    $("#res-title").textContent = prevScore == null ? "Baseline set" : score > prevScore ? "Sharper than last time" : score < prevScore ? "Slipped a little" : "Held steady";
+    $("#res-note").textContent = (st.current > 1 ? st.current + " days in a row. " : "") + (weakest ? "Weakest today: " + LABEL[weakest.k].toLowerCase() + " at " + Math.round(weakest.acc * 100) + "%. Tomorrow's set leans on it." : "");
+    $("#share").textContent = "UNAIDED · day " + st.current + " · " + score + "/100" + (prevScore != null ? " (" + (score - prevScore >= 0 ? "+" : "") + (score - prevScore) + ")" : "") + "\n" + SKILLS.map(function(s){ return s[1] + " " + (state.skills[s[0]] == null ? "–" : state.skills[s[0]]); }).join(" · ") + "\nNo AI. No search. No calculator.";
+    showView("results"); renderHome();
+  }
+
+  // ---------- nav ----------
+  function showView(v){ document.querySelectorAll(".view").forEach(function(s){ s.classList.toggle("active", s.id === "view-" + v); }); window.scrollTo(0, 0); }
+  $("#btn-start").onclick = startSession;
+  $("#btn-home").onclick = function(){ showView("home"); };
+  $("#btn-copy").onclick = function(){ var t = $("#share").textContent; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function(){ toast("Copied"); }, function(){ toast("Select the card and copy it"); }); else toast("Select the card and copy it"); };
+  var toastTimer; function toast(msg){ var t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2800); }
+  renderHome();
+})();
+</script>
